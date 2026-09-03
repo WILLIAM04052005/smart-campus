@@ -1,43 +1,35 @@
-import { useEffect, useState } from "react";
+import { useAuth } from "./context/AuthContext";
 
-// URL de l'API backend. En dev, le backend tourne sur le port 4000.
-const API_URL = "http://localhost:4000/api/health";
-
-type ApiStatus = "loading" | "connected" | "error";
-
+// Tableau de bord minimal : affiche le profil de l'utilisateur connecté
+// et un bouton de déconnexion. Sera enrichi au fil des prochains sprints
+// (emploi du temps, notes, absences...) avec un affichage différent
+// selon le rôle (STUDENT / TEACHER / ADMIN).
 function App() {
-  const [status, setStatus] = useState<ApiStatus>("loading");
-
-  // Appel AJAX (fetch) au démarrage pour vérifier que le frontend
-  // parle bien avec le backend et que le backend parle avec la DB.
-  useEffect(() => {
-    fetch(API_URL)
-      .then((res) => {
-        if (!res.ok) throw new Error("Réponse non OK");
-        return res.json();
-      })
-      .then(() => setStatus("connected"))
-      .catch(() => setStatus("error"));
-  }, []);
+  const { user, logout } = useAuth();
 
   return (
-    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center gap-4 px-4">
-      <h1 className="text-4xl font-bold">Smart Campus</h1>
-      <p className="text-slate-400">Sprint 0 — vérification de la chaîne complète</p>
-
-      <div
-        className={`px-4 py-2 rounded-full text-sm font-medium ${
-          status === "connected"
-            ? "bg-emerald-500/20 text-emerald-400"
-            : status === "error"
-            ? "bg-red-500/20 text-red-400"
-            : "bg-slate-700 text-slate-300"
-        }`}
-      >
-        {status === "loading" && "Connexion au backend..."}
-        {status === "connected" && "✓ Frontend ↔ Backend ↔ Base de données OK"}
-        {status === "error" && "✗ Backend injoignable — vérifie qu'il tourne sur le port 4000"}
+    <div className="min-h-screen bg-slate-900 text-slate-100 flex flex-col items-center justify-center gap-6 px-4">
+      <div className="text-center">
+        <h1 className="text-4xl font-bold mb-2">Smart Campus</h1>
+        <p className="text-slate-400">NextCampus — Tableau de bord</p>
       </div>
+
+      <div className="bg-slate-800 rounded-xl p-6 w-full max-w-sm text-center">
+        <p className="text-lg font-semibold">
+          {user?.firstName} {user?.lastName}
+        </p>
+        <p className="text-slate-400 text-sm">{user?.email}</p>
+        <span className="inline-block mt-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-400 text-xs font-medium">
+          {user?.role}
+        </span>
+      </div>
+
+      <button
+        onClick={logout}
+        className="text-sm text-slate-400 hover:text-red-400 transition underline"
+      >
+        Se déconnecter
+      </button>
     </div>
   );
 }
