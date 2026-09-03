@@ -44,7 +44,7 @@ router.post("/register", async (req, res) => {
 
   res.status(201).json({
     token,
-    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role },
+    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, classId: user.classId },
   });
 });
 
@@ -78,7 +78,7 @@ router.post("/login", async (req, res) => {
 
   res.json({
     token,
-    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role },
+    user: { id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName, role: user.role, classId: user.classId },
   });
 });
 
@@ -90,7 +90,7 @@ router.post("/login", async (req, res) => {
 router.get("/me", authenticate, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.userId },
-    select: { id: true, email: true, firstName: true, lastName: true, role: true },
+    select: { id: true, email: true, firstName: true, lastName: true, role: true, classId: true },
   });
 
   if (!user) {

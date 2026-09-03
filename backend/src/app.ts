@@ -2,6 +2,12 @@ import express from "express";
 import cors from "cors";
 import { prisma } from "./config/db";
 import authRoutes from "./modules/auth/auth.routes";
+import usersRoutes from "./modules/users/users.routes";
+import classesRoutes from "./modules/classes/classes.routes";
+import subjectsRoutes from "./modules/subjects/subjects.routes";
+import scheduleRoutes from "./modules/schedule/schedule.routes";
+import absencesRoutes from "./modules/absences/absences.routes";
+import gradesRoutes from "./modules/grades/grades.routes";
 import { authenticate, authorize } from "./middleware/auth";
 
 const app = express();
@@ -10,6 +16,12 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
+app.use("/api/users", usersRoutes);
+app.use("/api/classes", classesRoutes);
+app.use("/api/subjects", subjectsRoutes);
+app.use("/api/schedule", scheduleRoutes);
+app.use("/api/absences", absencesRoutes);
+app.use("/api/grades", gradesRoutes);
 
 // --------------------------------------------------------------
 // Route de santé : vérifie que l'API tourne ET que la connexion
@@ -33,10 +45,5 @@ app.get("/api/health", async (_req, res) => {
 app.get("/api/admin/ping", authenticate, authorize("ADMIN"), (_req, res) => {
   res.json({ message: "Bienvenue, administrateur." });
 });
-
-// Les prochaines routes métier (users, classes, emplois du temps...)
-// seront ajoutées ici au fil des prochains sprints, par exemple :
-// app.use("/api/users", usersRouter);
-// app.use("/api/classes", classesRouter);
 
 export default app;

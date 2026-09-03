@@ -36,6 +36,12 @@ model User {
   classId String?
   class   Class?  @relation(fields: [classId], references: [id])
 
+  // Relations inverses (un enseignant peut enseigner plusieurs matières ;
+  // un étudiant peut avoir plusieurs absences/notes)
+  subjectsTaught Subject[]
+  absences       Absence[] @relation("StudentAbsences")
+  grades         Grade[]   @relation("StudentGrades")
+
   @@map("users")
 }
 
@@ -46,6 +52,88 @@ model Class {
   createdAt DateTime @default(now())
 
   students User[]
+  subjects Subject[]
+  schedule ScheduleEntry[]
 
   @@map("classes")
+}
+
+// Une matière est rattachée à une classe et à un enseignant (optionnel
+// à la création : un admin peut créer la matière avant d'assigner
+// l'enseignant).
+model Subject {
+  id        String   @id @default(uuid())
+  name      String   // ex: "Développement Web"
+  createdAt DateTime @default(now())
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  teacherId String?
+  teacher   User?   @relation(fields: [teacherId], references: [id])
+
+  schedule ScheduleEntry[]
+  absences Absence[]
+  grades   Grade[]
+
+  @@map("subjects")
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+}
+
+// Un créneau récurrent dans l'emploi du temps (ex : "Développement Web,
+// tous les lundis de 9h à 12h, salle B12").
+model ScheduleEntry {
+  id        String    @id @default(uuid())
+  dayOfWeek DayOfWeek
+  startTime String    // format "HH:mm", ex: "09:00"
+  endTime   String    // format "HH:mm", ex: "12:00"
+  room      String
+
+  classId String
+  class   Class  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@map("schedule_entries")
+}
+
+model Absence {
+  id        String   @id @default(uuid())
+  date      DateTime
+  justified Boolean  @default(false)
+  comment   String?
+  createdAt DateTime @default(now())
+
+  studentId String
+  student   User   @relation("StudentAbsences", fields: [studentId], references: [id], onDelete: Cascade)
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@map("absences")
+}
+
+model Grade {
+  id        String   @id @default(uuid())
+  value     Float    // note obtenue
+  maxValue  Float    @default(20) // barème, 20 par défaut
+  comment   String?
+  date      DateTime @default(now())
+
+  studentId String
+  student   User   @relation("StudentGrades", fields: [studentId], references: [id], onDelete: Cascade)
+
+  subjectId String
+  subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@map("grades")
 }
