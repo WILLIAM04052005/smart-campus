@@ -8,11 +8,19 @@ import subjectsRoutes from "./modules/subjects/subjects.routes";
 import scheduleRoutes from "./modules/schedule/schedule.routes";
 import absencesRoutes from "./modules/absences/absences.routes";
 import gradesRoutes from "./modules/grades/grades.routes";
+import announcementsRoutes from "./modules/announcements/announcements.routes";
+import resourcesRoutes from "./modules/resources/resources.routes";
+import bookingsRoutes from "./modules/bookings/bookings.routes";
 import { authenticate, authorize } from "./middleware/auth";
 
 const app = express();
 
-app.use(cors());
+// En développement, on autorise toutes les origines (simple, pas de
+// risque puisque rien n'est exposé publiquement). En production, la
+// variable CORS_ORIGIN (définie sur Render) restreint l'accès à
+// l'URL exacte du frontend déployé — évite que n'importe quel autre
+// site puisse appeler notre API depuis un navigateur.
+app.use(cors({ origin: process.env.CORS_ORIGIN || "*" }));
 app.use(express.json());
 
 app.use("/api/auth", authRoutes);
@@ -22,6 +30,9 @@ app.use("/api/subjects", subjectsRoutes);
 app.use("/api/schedule", scheduleRoutes);
 app.use("/api/absences", absencesRoutes);
 app.use("/api/grades", gradesRoutes);
+app.use("/api/announcements", announcementsRoutes);
+app.use("/api/resources", resourcesRoutes);
+app.use("/api/bookings", bookingsRoutes);
 
 // --------------------------------------------------------------
 // Route de santé : vérifie que l'API tourne ET que la connexion

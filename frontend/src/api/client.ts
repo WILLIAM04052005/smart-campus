@@ -1,4 +1,7 @@
-const API_BASE_URL = "http://localhost:4000/api";
+// En local, on utilise localhost. Une fois déployé, la variable
+// d'environnement VITE_API_URL (définie sur Vercel) prend le relais et
+// pointe vers l'API en ligne (ex: https://smart-campus-api.onrender.com/api).
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 interface RequestOptions {
   method?: "GET" | "POST" | "PUT" | "DELETE";

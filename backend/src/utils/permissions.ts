@@ -8,3 +8,10 @@ export async function teacherOwnsSubject(teacherId: string, subjectId: string): 
   const subject = await prisma.subject.findUnique({ where: { id: subjectId } });
   return subject?.teacherId === teacherId;
 }
+
+// Utilisé par le module annonces : un enseignant ne peut publier une
+// annonce ciblée sur une classe que s'il y enseigne au moins une matière.
+export async function teacherTeachesClass(teacherId: string, classId: string): Promise<boolean> {
+  const subject = await prisma.subject.findFirst({ where: { teacherId, classId } });
+  return subject !== null;
+}

@@ -38,9 +38,11 @@ model User {
 
   // Relations inverses (un enseignant peut enseigner plusieurs matières ;
   // un étudiant peut avoir plusieurs absences/notes)
-  subjectsTaught Subject[]
-  absences       Absence[] @relation("StudentAbsences")
-  grades         Grade[]   @relation("StudentGrades")
+  subjectsTaught         Subject[]
+  absences               Absence[]      @relation("StudentAbsences")
+  grades                 Grade[]        @relation("StudentGrades")
+  announcementsAuthored  Announcement[] @relation("AnnouncementsAuthored")
+  bookings               Booking[]      @relation("UserBookings")
 
   @@map("users")
 }
@@ -54,6 +56,7 @@ model Class {
   students User[]
   subjects Subject[]
   schedule ScheduleEntry[]
+  announcements Announcement[]
 
   @@map("classes")
 }
@@ -136,4 +139,55 @@ model Grade {
   subject   Subject @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
   @@map("grades")
+}
+
+// Une annonce est soit globale (classId = null, visible de tous), soit
+// ciblée sur une classe précise. Publiée par un enseignant ou un admin.
+model Announcement {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+
+  authorId String
+  author   User   @relation("AnnouncementsAuthored", fields: [authorId], references: [id], onDelete: Cascade)
+
+  classId String? // null = annonce globale, visible par tout le monde
+  class   Class?  @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("announcements")
+}
+
+enum ResourceType {
+  ROOM
+  EQUIPMENT
+}
+
+// Une ressource réservable : salle de travail, vidéoprojecteur, etc.
+model Resource {
+  id       String       @id @default(uuid())
+  name     String
+  type     ResourceType
+  capacity Int? // pertinent pour une salle, pas pour du matériel
+
+  bookings Booking[]
+
+  @@map("resources")
+}
+
+model Booking {
+  id        String   @id @default(uuid())
+  date      DateTime // jour de la réservation
+  startTime String   // format "HH:mm"
+  endTime   String   // format "HH:mm"
+  purpose   String?
+  createdAt DateTime @default(now())
+
+  resourceId String
+  resource   Resource @relation(fields: [resourceId], references: [id], onDelete: Cascade)
+
+  userId String
+  user   User   @relation("UserBookings", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("bookings")
 }
