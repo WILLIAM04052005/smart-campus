@@ -19,7 +19,7 @@ function App() {
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <header className="border-b border-slate-800 px-4 py-4 flex justify-between items-center">
         <div>
-          <p className="font-bold">Smart Campus</p>
+          <p className="font-bold">Smart Campus-AWJ</p>
           <p className="text-xs text-slate-500">
             {user?.firstName} {user?.lastName} · {user?.role}
           </p>

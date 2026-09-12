@@ -90,7 +90,10 @@ obtenir un accès administrateur. C'est un exemple concret de la règle
   fait croire à un bug alors que l'ancienne version du code était encore
   active. Résolu en utilisant `xcopy /Y /E` en ligne de commande pour
   forcer le remplacement.
-- *(à compléter avec vos propres remarques)*
+- Erreur de syntaxe Git (`push -u origin main` au lieu de
+  `git push -u origin main`) — rappel qu'une commande Git commence
+  toujours par `git`, une confusion fréquente en début d'apprentissage
+  de la ligne de commande.
 
 ### Décisions à justifier en soutenance
 
@@ -105,10 +108,226 @@ obtenir un accès administrateur. C'est un exemple concret de la règle
 
 ---
 
-## Sprint 2 — À venir
+## Sprint 2 — Classes, matières, emploi du temps, absences, notes
 
-*(sera rempli à la prochaine session : classes, emploi du temps,
-absences, notes)*
+**Objectif** : construire le cœur métier de la plateforme — la gestion
+académique elle-même — avec des permissions différentes selon le rôle.
+
+### Choix techniques et justifications
+
+- **Modélisation relationnelle** : `Class` → `Subject` → (`ScheduleEntry`,
+  `Absence`, `Grade`). Chaque matière appartient à une classe et,
+  optionnellement, à un enseignant. Ce choix reflète directement
+  l'organisation réelle d'un établissement (un cours = une matière +
+  une classe + un enseignant), ce qui rend le modèle facile à expliquer
+  et à justifier devant un jury.
+- **Permissions vérifiées côté serveur, jamais côté client uniquement** :
+  chaque route métier revérifie les droits (`authorize`, et pour les
+  enseignants, `teacherOwnsSubject`). Le frontend adapte l'affichage par
+  confort d'usage, mais la vraie protection est toujours côté API — un
+  utilisateur malveillant pourrait sinon appeler l'API directement en
+  contournant l'interface.
+- **`teacherOwnsSubject` (fonction utilitaire partagée)** : évite de
+  dupliquer la même vérification de sécurité dans les modules absences
+  et grades (principe DRY — Don't Repeat Yourself). Centraliser cette
+  règle réduit aussi le risque d'oubli si la logique doit changer plus
+  tard.
+- **Interface frontend "role-based"** : trois composants distincts
+  (`AdminPanel`, `TeacherPanel`, `StudentPanel`) affichés conditionnellement
+  selon `user.role`, plutôt qu'une seule page avec plein de `if` partout.
+  Plus lisible, plus facile à faire évoluer indépendamment.
+
+### Point de sécurité important à mentionner dans le rapport
+
+La promotion d'un utilisateur en `TEACHER` ou `ADMIN` ne peut se faire que
+via la route `PATCH /api/users/:id`, elle-même protégée par
+`authorize("ADMIN")`. Combiné à la règle du Sprint 1 (le rôle n'est jamais
+pris depuis l'inscription publique), il est donc impossible pour un
+utilisateur de s'auto-promouvoir : la chaîne de confiance part toujours
+d'un admin existant.
+
+### Difficultés rencontrées
+
+- Erreur `EADDRINUSE: address already in use :::4000` en relançant le
+  backend après une mise à jour : un ancien terminal (issu d'une session
+  de travail précédente) faisait déjà tourner le serveur sur le même
+  port. Résolu en fermant l'ancien terminal — bon réflexe à garder :
+  toujours vérifier qu'un seul serveur backend tourne à la fois.
+- Confusion initiale sur Prisma Studio ("dois-je le télécharger ?") :
+  clarifié que `npx prisma studio` utilise directement l'outil déjà
+  présent dans les dépendances installées via `npm install`, sans
+  installation séparée ni connexion à un service externe.
+
+### Décisions à justifier en soutenance
+
+- Pourquoi les créneaux de l'emploi du temps sont "récurrents"
+  (jour de la semaine + heure, pas une date précise) plutôt qu'un
+  événement unique par date : plus simple à gérer pour un emploi du temps
+  hebdomadaire classique ; une évolution vers des créneaux ponctuels
+  (rattrapages, jours fériés) serait une piste d'amélioration à mentionner
+  dans les perspectives du rapport.
+- Pourquoi un étudiant ne peut pas s'auto-affecter à une classe (c'est un
+  admin qui le fait) : cohérent avec le fonctionnement réel d'un
+  établissement, où l'inscription administrative est un acte de gestion,
+  pas un choix libre de l'étudiant.
+
+---
+
+## Sprint 3 — Annonces et réservation de ressources
+
+**Objectif** : ajouter deux fonctionnalités transverses, utiles à tous
+les rôles, qui enrichissent la vie "communautaire" de la plateforme.
+
+### Choix techniques et justifications
+
+- **Annonces avec portée optionnelle** (`classId` nullable) : une seule
+  table gère à la fois les annonces globales et les annonces ciblées,
+  plutôt que deux systèmes séparés. Plus simple à maintenir, et la
+  requête de visibilité (`WHERE classId IS NULL OR classId = ...`) reste
+  lisible.
+- **Détection de conflit de créneaux pour les réservations** : plutôt que
+  d'interdire toute réservation multiple sur une ressource, on calcule
+  précisément le chevauchement entre deux intervalles horaires
+  (`startA < endB ET endA > startB`). C'est une pièce de logique métier
+  assez classique (calendriers, plannings) qu'il est utile de savoir
+  expliquer et justifier mathématiquement en soutenance.
+- **Permissions différenciées par ressource** : n'importe quel utilisateur
+  connecté peut réserver un créneau (cohérent avec l'usage réel — un
+  étudiant peut vouloir réserver une salle de travail), mais seul un
+  admin peut créer/supprimer les ressources elles-mêmes. Une même
+  fonctionnalité peut donc avoir des permissions différentes selon
+  l'action (lire/réserver vs. administrer).
+
+### Difficultés rencontrées
+
+- Pendant la construction du schéma, le modèle `Grade` a été
+  accidentellement supprimé lors d'une modification du fichier
+  `schema.prisma` (une erreur de copier-remplacer). Repéré immédiatement
+  en relisant le fichier avant de continuer — bon réflexe à garder :
+  toujours revérifier un fichier de schéma après une modification
+  importante, avant de lancer une migration.
+- *(à compléter avec vos propres remarques)*
+
+### Décisions à justifier en soutenance
+
+- Pourquoi la vérification de chevauchement se fait côté serveur et pas
+  seulement côté interface : deux utilisateurs pourraient techniquement
+  tenter de réserver le même créneau au même moment (condition de course) ;
+  seule une vérification côté base de données/serveur au moment de la
+  création garantit l'intégrité des données.
+- Pourquoi un enseignant peut supprimer ses propres annonces mais pas
+  celles des autres enseignants (alors qu'un admin peut tout supprimer) :
+  principe de moindre privilège — chacun ne contrôle que ce qu'il a
+  produit, sauf l'administrateur qui supervise l'ensemble.
+
+---
+
+## Sprint 3bis — Préparation au déploiement
+
+**Objectif** : avoir une version de l'application accessible en ligne,
+sans dépendre d'un poste local allumé, pour la démo de soutenance.
+
+### Choix techniques et justifications
+
+- **Render (backend) + Vercel (frontend) + Neon (base de données)** :
+  trois services gratuits, chacun spécialisé dans un type d'hébergement
+  (API Node, sites statiques/SPA, PostgreSQL managé). Cette séparation
+  reflète une architecture professionnelle réelle, où chaque brique peut
+  être choisie, remplacée ou mise à l'échelle indépendamment.
+- **Déploiement continu via GitHub** : chaque `git push` redéploie
+  automatiquement. Choix pragmatique pour un projet solo sur plusieurs
+  mois — évite les déploiements manuels oubliés ou une version en ligne
+  qui diverge du code source.
+- **`prisma migrate deploy` intégré au script de démarrage** : garantit
+  que la base de données en production reste toujours synchronisée avec
+  le schéma du code déployé, sans étape manuelle à ne pas oublier.
+- **CORS restreint par variable d'environnement** (`CORS_ORIGIN`) : en
+  local, CORS reste ouvert (`*`) pour simplifier le développement ; en
+  production, il est restreint à l'URL exacte du frontend déployé — une
+  bonne pratique de sécurité simple à expliquer en soutenance.
+
+### Difficultés rencontrées
+
+- *(à compléter : par exemple les temps de "cold start" du plan gratuit
+  Render — le service s'endort après 15 min d'inactivité)*
+
+### Décisions à justifier en soutenance
+
+- Pourquoi ne pas avoir choisi une solution "tout-en-un" (ex: un VPS
+  unique hébergeant front + back + DB) : les plateformes spécialisées
+  (Render/Vercel/Neon) offrent un déploiement continu et une gestion des
+  environnements beaucoup plus simples à opérer en solo, sans
+  compétences DevOps avancées (configuration serveur, reverse proxy,
+  certificats SSL...) — un compromis pragmatique assumé, à mentionner
+  comme telle dans les perspectives ("une containerisation Docker +
+  déploiement sur un VPS serait une piste d'évolution vers plus
+  d'autonomie d'hébergement").
+
+> Note : le déploiement effectif (création des comptes Render/Vercel,
+> configuration des variables d'environnement en ligne) a été repoussé
+> à plus tard dans le projet, une fois les fonctionnalités plus abouties
+> — voir `03-guide-deploiement.md` pour la marche à suivre le moment venu.
+
+---
+
+## Sprint 4 — Tests automatisés
+
+**Objectif** : valider par le code, plutôt qu'à l'œil, que les
+fonctionnalités critiques (authentification, permissions, logique
+métier) se comportent comme prévu — et pouvoir détecter automatiquement
+une régression si un futur changement casse quelque chose.
+
+### Choix techniques et justifications
+
+- **Jest + Supertest** : combinaison standard dans l'écosystème
+  Node/Express. Supertest permet de simuler de vraies requêtes HTTP
+  contre l'application Express (`app`) sans avoir besoin de démarrer un
+  vrai serveur sur un port réseau.
+- **Tests d'intégration plutôt que tests unitaires isolés** : plutôt que
+  de tester des fonctions isolément avec des données simulées (mocks), on
+  teste des scénarios complets (requête HTTP → middleware → base de
+  données → réponse). Plus représentatif du fonctionnement réel de
+  l'application, plus simple à écrire pour un projet de cette taille.
+- **Trois axes de test choisis délibérément** :
+  1. **Authentification** — la porte d'entrée de toute la plateforme,
+     avec un focus sur les failles de sécurité classiques (auto-promotion
+     de rôle, énumération de comptes via les messages d'erreur).
+  2. **Permissions (RBAC)** — le mécanisme transversal utilisé par
+     presque toutes les routes métier ; le tester une fois sur la route
+     d'exemple valide la fiabilité du middleware `authorize` partout où
+     il est utilisé.
+  3. **Logique métier non triviale** — la détection de chevauchement de
+     créneaux est le seul endroit du projet avec une vraie logique
+     algorithmique (comparaison d'intervalles) ; c'est l'endroit le plus
+     susceptible de contenir un bug subtil (erreur de comparaison stricte
+     vs. non stricte aux limites d'un intervalle, par exemple), donc le
+     plus utile à tester avec plusieurs cas limites (chevauchement exact,
+     partiel, créneaux adjacents).
+
+### Limite assumée (à mentionner honnêtement dans le rapport)
+
+Les tests s'exécutent contre la base de données de développement
+réelle (nettoyée après coup via `afterAll`), plutôt que contre une base
+de test isolée. C'est un choix pragmatique pour un projet solo sur un
+temps limité, mais ce n'est pas la pratique professionnelle recommandée
+(qui utiliserait une base de données dédiée, réinitialisée avant chaque
+suite de tests). C'est le genre de limite qu'il vaut mieux annoncer
+soi-même en soutenance plutôt que de laisser le jury la découvrir — ça
+montre que vous connaissez la bonne pratique même si vous ne l'avez pas
+mise en œuvre faute de temps.
+
+### Difficultés rencontrées
+
+- *(à compléter avec vos propres remarques)*
+
+### Décisions à justifier en soutenance
+
+- Pourquoi tester le chevauchement de créneaux avec un cas "adjacent"
+  (11h-12h après 9h-11h) : c'est un cas limite classique où une erreur
+  d'implémentation est facile (utiliser `<=`/`>=` au lieu de `<`/`>`
+  transformerait par erreur des créneaux consécutifs en "conflit"). Le
+  tester explicitement prouve que la logique est correcte, pas seulement
+  qu'elle semble fonctionner sur un cas simple.
 
 ---
 
