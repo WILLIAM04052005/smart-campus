@@ -71,7 +71,7 @@ Ouvrez http://localhost:5173 : si tout fonctionne, vous verrez
     (saisie absences/notes), `StudentPanel` (consultation emploi du
     temps/notes/absences)
 
-⚠️ **Le schéma de base de données a changé** (nouveaux modèles Subject,
+**Le schéma de base de données a changé** (nouveaux modèles Subject,
 ScheduleEntry, Absence, Grade). Après avoir récupéré ces fichiers, il faut
 relancer la migration :
 ```
@@ -87,7 +87,7 @@ npx prisma migrate dev --name sprint2_academic_models
     pour enseignant/admin) et "Réservations" (visible par tous, création
     de ressources réservée à l'admin)
 
-⚠️ **Le schéma a encore changé** (modèles Announcement, Resource,
+**Le schéma a encore changé** (modèles Announcement, Resource,
 Booking). Relancez la migration après avoir copié les fichiers :
 ```
 cd backend
@@ -110,7 +110,7 @@ npm install
 npm test
 ```
 
-⚠️ Ces tests s'exécutent contre votre base de données réelle (celle de
+Ces tests s'exécutent contre votre base de données réelle (celle de
 votre `.env`) et nettoient automatiquement les données qu'ils créent
 (`afterAll`). C'est une simplification pédagogique assumée : dans un
 projet professionnel, on utiliserait une base de données dédiée aux
@@ -118,7 +118,7 @@ tests, complètement isolée de la base de développement — c'est une piste
 d'amélioration à mentionner dans le rapport si vous voulez montrer que
 vous connaissez la bonne pratique.
 
-⚠️ **Après avoir récupéré ces changements**, pensez à relancer
+**Après avoir récupéré ces changements**, pensez à relancer
 `npm install` dans `backend` ET dans `frontend` (nouvelles dépendances :
 bcrypt, jsonwebtoken, zod, react-router-dom), puis à relancer
 `npx prisma generate` dans `backend` si besoin.
