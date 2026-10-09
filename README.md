@@ -71,7 +71,7 @@ Ouvrez http://localhost:5173 : si tout fonctionne, vous verrez
     (saisie absences/notes), `StudentPanel` (consultation emploi du
     temps/notes/absences)
 
-**Le schéma de base de données a changé** (nouveaux modèles Subject,
+⚠️ **Le schéma de base de données a changé** (nouveaux modèles Subject,
 ScheduleEntry, Absence, Grade). Après avoir récupéré ces fichiers, il faut
 relancer la migration :
 ```
@@ -87,7 +87,7 @@ npx prisma migrate dev --name sprint2_academic_models
     pour enseignant/admin) et "Réservations" (visible par tous, création
     de ressources réservée à l'admin)
 
-**Le schéma a encore changé** (modèles Announcement, Resource,
+⚠️ **Le schéma a encore changé** (modèles Announcement, Resource,
 Booking). Relancez la migration après avoir copié les fichiers :
 ```
 cd backend
@@ -110,7 +110,7 @@ npm install
 npm test
 ```
 
-Ces tests s'exécutent contre votre base de données réelle (celle de
+⚠️ Ces tests s'exécutent contre votre base de données réelle (celle de
 votre `.env`) et nettoient automatiquement les données qu'ils créent
 (`afterAll`). C'est une simplification pédagogique assumée : dans un
 projet professionnel, on utiliserait une base de données dédiée aux
@@ -118,7 +118,38 @@ tests, complètement isolée de la base de développement — c'est une piste
 d'amélioration à mentionner dans le rapport si vous voulez montrer que
 vous connaissez la bonne pratique.
 
-**Après avoir récupéré ces changements**, pensez à relancer
+- [x] **Sprint 4 (notifications)** — Notifications in-app :
+  - Backend : `/api/notifications` (liste, marquer comme lu), déclenchées
+    automatiquement à la création d'une absence, d'une note, ou d'une
+    annonce (globale ou ciblée sur une classe)
+  - Frontend : cloche de notifications dans le header, avec compteur de
+    non-lues et rafraîchissement automatique toutes les 30 secondes
+  - Correction : la méthode HTTP `PATCH` avait été oubliée dans le
+    typage du client API (`apiRequest`) — invisible en développement,
+    mais aurait bloqué un `npm run build`
+
+⚠️ **Nouveau modèle de données** (`Notification`). Après avoir copié les
+fichiers :
+```
+cd backend
+npx prisma migrate dev --name sprint4_notifications
+```
+
+### Tester les notifications
+
+1. Connectez-vous avec un compte enseignant, saisissez une absence ou une
+   note pour un étudiant
+2. Connectez-vous avec le compte étudiant concerné : la cloche en haut à
+   droite doit afficher un badge rouge avec le nombre de notifications
+   non lues
+3. Cliquez sur la cloche : la notification apparaît avec un point vert
+   (non lue) ; cliquez dessus pour la marquer comme lue
+4. Publiez une annonce globale (en admin) : tous les comptes étudiants
+   doivent recevoir une notification
+5. Publiez une annonce ciblée sur une classe : seuls les étudiants de
+   cette classe doivent être notifiés
+
+⚠️ **Après avoir récupéré ces changements**, pensez à relancer
 `npm install` dans `backend` ET dans `frontend` (nouvelles dépendances :
 bcrypt, jsonwebtoken, zod, react-router-dom), puis à relancer
 `npx prisma generate` dans `backend` si besoin.

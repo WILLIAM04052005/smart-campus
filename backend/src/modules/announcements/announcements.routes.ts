@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../../config/db";
 import { authenticate, authorize } from "../../middleware/auth";
 import { teacherTeachesClass } from "../../utils/permissions";
+import { notifyClass, notifyAllStudents } from "../../utils/notify";
 
 const router = Router();
 
@@ -64,6 +65,15 @@ router.post("/", authenticate, authorize("TEACHER", "ADMIN"), async (req, res) =
   const announcement = await prisma.announcement.create({
     data: { ...parsed.data, authorId: userId },
   });
+
+  // Notification des étudiants concernés : toute la promotion si
+  // l'annonce est globale, uniquement la classe ciblée sinon.
+  const notificationMessage = `Nouvelle annonce : ${announcement.title}`;
+  if (classId) {
+    await notifyClass(classId, notificationMessage, "ANNOUNCEMENT");
+  } else {
+    await notifyAllStudents(notificationMessage, "ANNOUNCEMENT");
+  }
 
   res.status(201).json({ announcement });
 });

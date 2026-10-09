@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../../config/db";
 import { authenticate, authorize } from "../../middleware/auth";
 import { teacherOwnsSubject } from "../../utils/permissions";
+import { notifyUser } from "../../utils/notify";
 
 const router = Router();
 
@@ -59,7 +60,17 @@ router.post("/", authenticate, authorize("TEACHER", "ADMIN"), async (req, res) =
     return res.status(400).json({ message: "La note ne peut pas dépasser le barème." });
   }
 
-  const grade = await prisma.grade.create({ data: parsed.data });
+  const grade = await prisma.grade.create({
+    data: parsed.data,
+    include: { subject: { select: { name: true } } },
+  });
+
+  await notifyUser(
+    parsed.data.studentId,
+    `Nouvelle note en ${grade.subject.name} : ${parsed.data.value}/${parsed.data.maxValue ?? 20}.`,
+    "GRADE"
+  );
+
   res.status(201).json({ grade });
 });
 

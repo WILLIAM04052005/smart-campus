@@ -3,6 +3,7 @@ import { z } from "zod";
 import { prisma } from "../../config/db";
 import { authenticate, authorize } from "../../middleware/auth";
 import { teacherOwnsSubject } from "../../utils/permissions";
+import { notifyUser } from "../../utils/notify";
 
 const router = Router();
 
@@ -61,7 +62,20 @@ router.post("/", authenticate, authorize("TEACHER", "ADMIN"), async (req, res) =
     return res.status(403).json({ message: "Vous n'enseignez pas cette matière." });
   }
 
-  const absence = await prisma.absence.create({ data: parsed.data });
+  const absence = await prisma.absence.create({
+    data: parsed.data,
+    include: { subject: { select: { name: true } } },
+  });
+
+  // On notifie l'étudiant concerné, avec le nom de la matière pour que
+  // le message ait du sens sans avoir à ouvrir le détail.
+  const formattedDate = new Date(parsed.data.date).toLocaleDateString("fr-FR");
+  await notifyUser(
+    parsed.data.studentId,
+    `Absence enregistrée en ${absence.subject.name} le ${formattedDate}.`,
+    "ABSENCE"
+  );
+
   res.status(201).json({ absence });
 });
 

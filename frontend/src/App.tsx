@@ -5,6 +5,7 @@ import TeacherPanel from "./pages/TeacherPanel";
 import StudentPanel from "./pages/StudentPanel";
 import Announcements from "./pages/Announcements";
 import ResourceBooking from "./pages/ResourceBooking";
+import NotificationBell from "./components/NotificationBell";
 
 type Tab = "dashboard" | "announcements" | "booking";
 
@@ -19,14 +20,17 @@ function App() {
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <header className="border-b border-slate-800 px-4 py-4 flex justify-between items-center">
         <div>
-          <p className="font-bold">Smart Campus-AWJ</p>
+          <p className="font-bold">Smart Campus</p>
           <p className="text-xs text-slate-500">
             {user?.firstName} {user?.lastName} · {user?.role}
           </p>
         </div>
-        <button onClick={logout} className="text-sm text-slate-400 hover:text-red-400 transition">
-          Se déconnecter
-        </button>
+        <div className="flex items-center gap-3">
+          <NotificationBell />
+          <button onClick={logout} className="text-sm text-slate-400 hover:text-red-400 transition">
+            Se déconnecter
+          </button>
+        </div>
       </header>
 
       <nav className="flex gap-2 px-4 py-3 border-b border-slate-800">

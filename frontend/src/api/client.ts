@@ -4,7 +4,7 @@
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:4000/api";
 
 interface RequestOptions {
-  method?: "GET" | "POST" | "PUT" | "DELETE";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   token?: string | null;
 }

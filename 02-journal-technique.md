@@ -331,6 +331,59 @@ mise en œuvre faute de temps.
 
 ---
 
+## Sprint 4 (suite) — Notifications
+
+**Objectif** : informer un utilisateur des événements qui le concernent
+(nouvelle absence, note, annonce) sans qu'il ait besoin de consulter
+activement chaque section de la plateforme.
+
+### Choix techniques et justifications
+
+- **Notifications in-app plutôt qu'e-mails réels** : envoyer de vrais
+  e-mails nécessiterait un service tiers (SMTP, Resend, SendGrid) et sa
+  configuration (domaine vérifié, clés API, gestion des échecs
+  d'envoi) — une complexité disproportionnée pour la valeur
+  pédagogique apportée dans le cadre de ce projet. Le choix de
+  notifications in-app (stockées en base, consultées via une route
+  dédiée) permet de démontrer le même principe fonctionnel
+  (informer l'utilisateur d'un événement) avec une implémentation
+  entièrement maîtrisée de bout en bout.
+- **Rafraîchissement par intervalle (`setInterval`, 30 secondes) plutôt
+  que WebSocket** : une connexion WebSocket permettrait un affichage
+  réellement temps réel, mais ajoute une complexité d'infrastructure
+  (gestion de la connexion, reconnexion automatique, montée en charge)
+  qui n'est pas justifiée pour ce cas d'usage — un léger délai de
+  quelques secondes avant l'affichage d'une notification est
+  parfaitement acceptable dans un contexte de gestion académique.
+- **Fonctions utilitaires centralisées** (`notifyUser`, `notifyClass`,
+  `notifyAllStudents`) plutôt que du code de création de notification
+  dupliqué dans chaque route métier : un seul endroit à modifier si la
+  logique de notification doit évoluer (ajout d'un canal d'envoi
+  supplémentaire, par exemple).
+
+### Difficultés rencontrées
+
+- En ajoutant la méthode `PATCH` utilisée par les notifications, une
+  erreur de typage préexistante a été découverte : le type
+  `RequestOptions` du client API (`apiRequest`) n'autorisait pas
+  `PATCH`, alors que cette méthode était déjà utilisée depuis le Sprint 2
+  (gestion des rôles utilisateurs). L'erreur était restée invisible car
+  le mode développement (`ts-node-dev --transpile-only` et Vite en mode
+  dev) ne bloque pas sur les erreurs de typage — seul un `npm run build`
+  l'aurait révélée. Corrigé en élargissant le type autorisé. Ce type
+  d'incident illustre l'intérêt de lancer occasionnellement un build de
+  production, même en cours de développement, pour détecter ce genre
+  d'erreur silencieuse au plus tôt.
+
+### Décisions à justifier en soutenance
+
+- Pourquoi le nettoyage/suppression des anciennes notifications n'est
+  pas automatisé (pas de purge après X jours) : accepté comme
+  simplification pour la durée du projet ; à mentionner comme piste
+  d'amélioration (tâche planifiée / cron job) dans le bilan.
+
+---
+
 ## Modèle pour les prochains sprints
 
 Copiez ce squelette à chaque nouveau sprint :
