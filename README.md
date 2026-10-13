@@ -1,7 +1,7 @@
 # Smart Campus (NextCampus)
 
 Plateforme de gestion de vie académique — projet de fin d'études B3
-Développeur Web Fullstack.
+Développeur Web Fullstack by ME.
 
 Voir `01-cahier-des-charges.md` pour le contexte, le périmètre fonctionnel
 et le planning du projet.
@@ -71,7 +71,7 @@ Ouvrez http://localhost:5173 : si tout fonctionne, vous verrez
     (saisie absences/notes), `StudentPanel` (consultation emploi du
     temps/notes/absences)
 
-⚠️ **Le schéma de base de données a changé** (nouveaux modèles Subject,
+**Le schéma de base de données a changé** (nouveaux modèles Subject,
 ScheduleEntry, Absence, Grade). Après avoir récupéré ces fichiers, il faut
 relancer la migration :
 ```
@@ -87,7 +87,7 @@ npx prisma migrate dev --name sprint2_academic_models
     pour enseignant/admin) et "Réservations" (visible par tous, création
     de ressources réservée à l'admin)
 
-⚠️ **Le schéma a encore changé** (modèles Announcement, Resource,
+**Le schéma a encore changé** (modèles Announcement, Resource,
 Booking). Relancez la migration après avoir copié les fichiers :
 ```
 cd backend
@@ -109,8 +109,7 @@ cd backend
 npm install
 npm test
 ```
-
-⚠️ Ces tests s'exécutent contre votre base de données réelle (celle de
+ Ces tests s'exécutent contre votre base de données réelle (celle de
 votre `.env`) et nettoient automatiquement les données qu'ils créent
 (`afterAll`). C'est une simplification pédagogique assumée : dans un
 projet professionnel, on utiliserait une base de données dédiée aux
@@ -128,7 +127,7 @@ vous connaissez la bonne pratique.
     typage du client API (`apiRequest`) — invisible en développement,
     mais aurait bloqué un `npm run build`
 
-⚠️ **Nouveau modèle de données** (`Notification`). Après avoir copié les
+**Nouveau modèle de données** (`Notification`). Après avoir copié les
 fichiers :
 ```
 cd backend
@@ -157,7 +156,7 @@ npx prisma migrate dev --name sprint4_notifications
     définition que le bulletin (moyenne des moyennes par matière)
   - Tests : `tests/bulletins.test.ts` (401, 403, PDF valide, 404)
 
-⚠️ **Nouvelle dépendance** (`pdfkit`) : relancez `npm install` dans
+**Nouvelle dépendance** (`pdfkit`) : relancez `npm install` dans
 `backend` après avoir copié les fichiers. Aucune migration nécessaire.
 
 ### Tester les bulletins PDF
@@ -183,7 +182,7 @@ npx prisma migrate dev --name sprint4_notifications
 5. Publiez une annonce ciblée sur une classe : seuls les étudiants de
    cette classe doivent être notifiés
 
-⚠️ **Après avoir récupéré ces changements**, pensez à relancer
+**Après avoir récupéré ces changements**, pensez à relancer
 `npm install` dans `backend` ET dans `frontend` (nouvelles dépendances :
 bcrypt, jsonwebtoken, zod, react-router-dom), puis à relancer
 `npx prisma generate` dans `backend` si besoin.
@@ -215,7 +214,3 @@ git add .
 git commit -m "Sprint 0 : initialisation du projet (structure, config, health check)"
 ```
 
-Pensez à créer un dépôt GitHub et à pousser régulièrement — un historique
-de commits clair et régulier est un vrai plus pour le rapport et la
-soutenance (ça prouve un travail progressif, pas fait à la dernière
-minute).

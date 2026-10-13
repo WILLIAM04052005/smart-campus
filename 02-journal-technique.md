@@ -488,23 +488,4 @@ absences.
   pas d'historique des bulletins déjà émis (un bulletin signé et archivé
   à une date donnée nécessiterait de conserver une copie figée).
 
----
 
-## Modèle pour les prochains sprints
-
-Copiez ce squelette à chaque nouveau sprint :
-
-```markdown
-## Sprint X — [nom du sprint]
-
-**Objectif** :
-
-### Choix techniques et justifications
--
-
-### Difficultés rencontrées
--
-
-### Décisions à justifier en soutenance
--
-```
