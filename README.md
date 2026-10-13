@@ -135,6 +135,17 @@ cd backend
 npx prisma migrate dev --name sprint4_notifications
 ```
 
+- [x] **Sprint 4 (statistiques)** — Tableau de bord statistiques (admin) :
+  - Backend : `GET /api/stats` (réservée aux ADMIN) — chiffres clés de
+    l'établissement, absences et moyenne par classe, moyenne par matière
+    (notes ramenées sur 20 pour comparer des barèmes différents)
+  - Frontend : onglet "Statistiques" dans le panneau d'administration,
+    avec cartes de chiffres clés et graphiques en barres en CSS pur
+    (aucune bibliothèque de graphiques ajoutée)
+  - Aucune migration ni nouvelle dépendance nécessaire
+  - Tests : `tests/stats.test.ts` (401 sans token, 403 pour un étudiant,
+    200 + structure correcte pour un admin)
+
 ### Tester les notifications
 
 1. Connectez-vous avec un compte enseignant, saisissez une absence ou une

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { apiRequest } from "../api/client";
 import { useAuth } from "../context/AuthContext";
+import StatsPanel from "./StatsPanel";
 
 interface SchoolClass {
   id: string;
@@ -25,7 +26,7 @@ interface UserRow {
   classId: string | null;
 }
 
-type Tab = "classes" | "subjects" | "users";
+type Tab = "classes" | "subjects" | "users" | "stats";
 
 export default function AdminPanel() {
   const { token } = useAuth();
@@ -93,7 +94,7 @@ export default function AdminPanel() {
       <h2 className="text-2xl font-bold mb-4">Administration</h2>
 
       <div className="flex gap-2 mb-6">
-        {(["classes", "subjects", "users"] as Tab[]).map((t) => (
+        {(["classes", "subjects", "users", "stats"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -101,7 +102,13 @@ export default function AdminPanel() {
               tab === t ? "bg-emerald-500 text-slate-900" : "bg-slate-800 text-slate-300"
             }`}
           >
-            {t === "classes" ? "Classes" : t === "subjects" ? "Matières" : "Utilisateurs"}
+            {t === "classes"
+              ? "Classes"
+              : t === "subjects"
+              ? "Matières"
+              : t === "users"
+              ? "Utilisateurs"
+              : "Statistiques"}
           </button>
         ))}
       </div>
@@ -184,6 +191,8 @@ export default function AdminPanel() {
           </ul>
         </div>
       )}
+
+      {tab === "stats" && <StatsPanel />}
 
       {tab === "users" && (
         <ul className="divide-y divide-slate-800">

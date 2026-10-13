@@ -384,6 +384,51 @@ activement chaque section de la plateforme.
 
 ---
 
+## Sprint 4 (suite) — Tableau de bord statistiques
+
+**Objectif** : donner à l'administrateur une vue synthétique de
+l'établissement (effectifs, absentéisme, résultats) sans avoir à parcourir
+chaque classe ou chaque matière une par une.
+
+### Choix techniques et justifications
+
+- **Agrégations calculées côté serveur** (route unique `GET /api/stats`)
+  plutôt que côté navigateur : le frontend ne reçoit que des chiffres
+  déjà synthétisés, ce qui évite de transférer toutes les notes et
+  absences brutes de l'établissement vers le client — plus léger, et
+  plus sûr (le navigateur n'a pas accès aux données individuelles dont
+  il n'a pas besoin).
+- **Notes normalisées sur 20 avant calcul des moyennes** : les notes
+  peuvent avoir des barèmes différents (`maxValue`) ; faire la moyenne de
+  valeurs brutes (ex : 8/10 et 15/20) fausserait le résultat. Chaque note
+  est donc ramenée à `valeur / barème × 20` avant agrégation.
+- **Indicateur « absences par étudiant »** plutôt que le nombre brut
+  d'absences par classe : une classe de 40 étudiants aura mécaniquement
+  plus d'absences qu'une classe de 10, un total brut serait donc
+  trompeur. Le ratio permet une comparaison équitable entre classes.
+- **Graphiques en barres en CSS pur** plutôt qu'une bibliothèque
+  (Chart.js, Recharts) : pour deux types de barres horizontales simples,
+  une dépendance supplémentaire serait disproportionnée (poids du
+  bundle, maintenance). À réévaluer si des graphiques plus riches
+  (courbes d'évolution, camemberts) devenaient nécessaires.
+- **Accès strictement réservé aux ADMIN**, vérifié côté serveur et
+  couvert par des tests automatisés (401 / 403 / 200).
+
+### Difficultés rencontrées
+
+- *(à compléter avec vos propres remarques)*
+
+### Décisions à justifier en soutenance
+
+- Pourquoi les statistiques sont calculées à la demande, à chaque
+  ouverture de l'onglet, plutôt que pré-calculées et mises en cache :
+  à l'échelle visée (quelques centaines d'étudiants), le temps de calcul
+  est négligeable. Au-delà, une mise en cache ou des requêtes
+  d'agrégation SQL (`GROUP BY`) deviendraient pertinentes — à citer comme
+  piste d'évolution.
+
+---
+
 ## Modèle pour les prochains sprints
 
 Copiez ce squelette à chaque nouveau sprint :

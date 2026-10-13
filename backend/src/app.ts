@@ -12,6 +12,7 @@ import announcementsRoutes from "./modules/announcements/announcements.routes";
 import resourcesRoutes from "./modules/resources/resources.routes";
 import bookingsRoutes from "./modules/bookings/bookings.routes";
 import notificationsRoutes from "./modules/notifications/notifications.routes";
+import statsRoutes from "./modules/stats/stats.routes";
 import { authenticate, authorize } from "./middleware/auth";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use("/api/announcements", announcementsRoutes);
 app.use("/api/resources", resourcesRoutes);
 app.use("/api/bookings", bookingsRoutes);
 app.use("/api/notifications", notificationsRoutes);
+app.use("/api/stats", statsRoutes);
 
 // --------------------------------------------------------------
 // Route de santé : vérifie que l'API tourne ET que la connexion
