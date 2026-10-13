@@ -429,6 +429,67 @@ chaque classe ou chaque matière une par une.
 
 ---
 
+## Sprint 4 (suite) — Export PDF des bulletins
+
+**Objectif** : permettre à un étudiant (ou à l'administration) d'obtenir
+un document de synthèse imprimable : notes par matière, moyennes,
+absences.
+
+### Choix techniques et justifications
+
+- **Génération côté serveur avec `pdfkit`** plutôt que côté navigateur
+  (jsPDF, impression de la page) : le serveur est le seul à pouvoir
+  garantir que les droits d'accès sont vérifiés *avant* de produire le
+  document, et le PDF est identique quel que soit le navigateur de
+  l'utilisateur. Une génération côté client aurait nécessité de
+  transférer toutes les données du bulletin au navigateur, puis de faire
+  confiance à ce dernier.
+- **Fonction de rendu pure et isolée** (`createBulletinPdf`) : elle reçoit
+  des données déjà préparées et ne connaît ni Express ni Prisma. Elle a
+  pu être testée seule, avec des données fictives, avant d'être branchée
+  à la route.
+- **Téléchargement via `fetch` + « blob »** côté frontend : un simple lien
+  `<a href>` n'enverrait pas l'en-tête `Authorization` portant le token
+  JWT. Le fichier est donc récupéré par une requête authentifiée, puis
+  proposé au téléchargement depuis une URL temporaire locale.
+- **Contrôle des droits adapté au contexte** : un étudiant n'accède qu'à
+  son propre bulletin (vérifié avant même d'interroger la base, pour ne
+  pas révéler l'existence d'un identifiant), un enseignant aux étudiants
+  des classes où il enseigne (réutilisation de `teacherTeachesClass`),
+  un admin à tous.
+- **Moyenne générale = moyenne des moyennes par matière** (chaque matière
+  compte pour un, quel que soit son nombre de notes). C'est la
+  définition d'un bulletin scolaire classique ; la moyenne « toutes
+  notes confondues » donnerait plus de poids aux matières très notées.
+
+### Difficultés rencontrées
+
+- **Page blanche parasite** : lors du premier rendu d'essai, le pied de
+  page (écrit dans la marge basse) faisait ajouter à pdfkit une troisième
+  page quasi vide. Détecté en convertissant le PDF en images pour le
+  contrôler visuellement ; corrigé en supprimant la marge basse de la page
+  courante avant d'écrire le pied de page. Leçon : un document généré se
+  vérifie à l'œil, les tests automatisés ne détectent pas ce genre de
+  défaut de mise en page.
+- **Incohérence entre deux « moyennes »** : le tableau de bord étudiant
+  calculait la moyenne sur toutes les notes, alors que le bulletin
+  calculait la moyenne des moyennes de matières. Un étudiant aurait vu
+  deux chiffres différents pour la même notion. Repéré avant livraison et
+  corrigé en alignant le tableau de bord sur la définition du bulletin.
+  À noter : la « moyenne générale » du tableau de bord *administrateur*
+  (statistiques) reste calculée sur l'ensemble des notes, car c'est un
+  indicateur global d'établissement et non le résultat d'un étudiant.
+
+### Décisions à justifier en soutenance
+
+- Pourquoi ne pas avoir stocké les PDF en base ou sur disque : le bulletin
+  est généré à la demande à partir des données courantes, il est donc
+  toujours à jour et n'occupe aucun espace de stockage. Contrepartie :
+  pas d'historique des bulletins déjà émis (un bulletin signé et archivé
+  à une date donnée nécessiterait de conserver une copie figée).
+
+---
+
 ## Modèle pour les prochains sprints
 
 Copiez ce squelette à chaque nouveau sprint :

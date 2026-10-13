@@ -33,3 +33,34 @@ export async function apiRequest<T>(path: string, options: RequestOptions = {}):
 
   return data as T;
 }
+
+// Télécharge un fichier protégé (ex : bulletin PDF). Un simple lien <a href>
+// ne peut pas être utilisé ici : il n'enverrait pas l'en-tête
+// Authorization contenant le token. On récupère donc le fichier via fetch,
+// on le transforme en "blob", puis on déclenche le téléchargement
+// depuis une URL temporaire locale.
+export async function downloadFile(path: string, token: string | null, fallbackName: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
+
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    throw new Error(data?.message || "Le téléchargement a échoué.");
+  }
+
+  // On reprend le nom de fichier proposé par le serveur s'il est présent
+  const disposition = response.headers.get("Content-Disposition") || "";
+  const match = disposition.match(/filename="([^"]+)"/);
+  const filename = match ? match[1] : fallbackName;
+
+  const blob = await response.blob();
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}

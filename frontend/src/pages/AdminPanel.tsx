@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiRequest } from "../api/client";
+import { apiRequest, downloadFile } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 import StatsPanel from "./StatsPanel";
 
@@ -85,6 +85,14 @@ export default function AdminPanel() {
   async function updateUser(userId: string, data: { role?: string; classId?: string | null }) {
     await apiRequest(`/users/${userId}`, { method: "PATCH", token, body: data });
     loadAll();
+  }
+
+  async function downloadBulletin(student: UserRow) {
+    try {
+      await downloadFile(`/bulletins/${student.id}`, token, "bulletin.pdf");
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Le téléchargement a échoué.");
+    }
   }
 
   const teachers = users.filter((u) => u.role === "TEACHER");
@@ -220,6 +228,14 @@ export default function AdminPanel() {
                       <option key={c.id} value={c.id}>{c.name}</option>
                     ))}
                   </select>
+                )}
+                {u.role === "STUDENT" && (
+                  <button
+                    onClick={() => downloadBulletin(u)}
+                    className="bg-slate-700 hover:bg-slate-600 rounded-lg px-3 py-1 text-sm transition"
+                  >
+                    Bulletin PDF
+                  </button>
                 )}
               </div>
             </li>

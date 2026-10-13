@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { apiRequest } from "../api/client";
+import { apiRequest, downloadFile } from "../api/client";
 import { useAuth } from "../context/AuthContext";
 
 interface ScheduleEntry {
@@ -40,6 +40,16 @@ export default function StudentPanel() {
   const [schedule, setSchedule] = useState<ScheduleEntry[]>([]);
   const [absences, setAbsences] = useState<Absence[]>([]);
   const [grades, setGrades] = useState<Grade[]>([]);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  async function handleDownloadBulletin() {
+    setDownloadError(null);
+    try {
+      await downloadFile(`/bulletins/${user!.id}`, token, "bulletin.pdf");
+    } catch (err) {
+      setDownloadError(err instanceof Error ? err.message : "Le téléchargement a échoué.");
+    }
+  }
 
   useEffect(() => {
     if (!user?.classId) return;
@@ -61,13 +71,37 @@ export default function StudentPanel() {
     );
   }
 
+  // Même définition que le bulletin PDF : on calcule d'abord la moyenne de
+  // chaque matière (notes ramenées sur 20), puis la moyenne de ces
+  // moyennes — chaque matière compte pour un, quel que soit son nombre
+  // de notes. Le tableau de bord et le bulletin affichent ainsi le même chiffre.
+  const gradesBySubject = new Map<string, number[]>();
+  grades.forEach((g) => {
+    const list = gradesBySubject.get(g.subject.name) ?? [];
+    list.push((g.value / g.maxValue) * 20);
+    gradesBySubject.set(g.subject.name, list);
+  });
+  const subjectAverages = [...gradesBySubject.values()].map(
+    (list) => list.reduce((a, b) => a + b, 0) / list.length
+  );
   const average =
-    grades.length > 0
-      ? (grades.reduce((sum, g) => sum + (g.value / g.maxValue) * 20, 0) / grades.length).toFixed(1)
+    subjectAverages.length > 0
+      ? (subjectAverages.reduce((a, b) => a + b, 0) / subjectAverages.length).toFixed(1)
       : null;
 
   return (
     <div className="max-w-2xl mx-auto py-8 px-4 text-slate-100 space-y-8">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-xl font-bold">Mon espace</h2>
+        <button
+          onClick={handleDownloadBulletin}
+          className="bg-emerald-500 hover:bg-emerald-400 text-slate-900 font-semibold rounded-lg px-4 py-2 text-sm transition"
+        >
+          Télécharger mon bulletin (PDF)
+        </button>
+      </div>
+      {downloadError && <p className="text-red-400 text-sm">{downloadError}</p>}
+
       <section>
         <h2 className="text-xl font-bold mb-3">Emploi du temps</h2>
         {schedule.length === 0 ? (

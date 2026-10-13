@@ -146,6 +146,29 @@ npx prisma migrate dev --name sprint4_notifications
   - Tests : `tests/stats.test.ts` (401 sans token, 403 pour un étudiant,
     200 + structure correcte pour un admin)
 
+- [x] **Sprint 4 (bulletins PDF)** — Export du bulletin de notes en PDF :
+  - Backend : `GET /api/bulletins/:studentId` — PDF généré côté serveur
+    avec `pdfkit` (notes par matière, moyennes sur 20, moyenne générale,
+    absences). Droits : un étudiant télécharge uniquement son bulletin,
+    un enseignant ceux des classes où il enseigne, un admin tous
+  - Frontend : bouton « Télécharger mon bulletin (PDF) » côté étudiant,
+    bouton « Bulletin PDF » dans la liste des utilisateurs côté admin
+  - La moyenne du tableau de bord étudiant utilise désormais la même
+    définition que le bulletin (moyenne des moyennes par matière)
+  - Tests : `tests/bulletins.test.ts` (401, 403, PDF valide, 404)
+
+⚠️ **Nouvelle dépendance** (`pdfkit`) : relancez `npm install` dans
+`backend` après avoir copié les fichiers. Aucune migration nécessaire.
+
+### Tester les bulletins PDF
+
+1. Connectez-vous avec un compte étudiant rattaché à une classe ayant des
+   matières et des notes, puis cliquez sur « Télécharger mon bulletin »
+2. Connectez-vous en admin, onglet Utilisateurs : cliquez sur « Bulletin
+   PDF » à côté d'un étudiant
+3. Vérifiez que la moyenne générale du PDF est identique à celle affichée
+   sur le tableau de bord de l'étudiant
+
 ### Tester les notifications
 
 1. Connectez-vous avec un compte enseignant, saisissez une absence ou une
