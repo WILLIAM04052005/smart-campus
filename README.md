@@ -1,216 +1,377 @@
-# Smart Campus (NextCampus)
+# Smart Campus
 
-Plateforme de gestion de vie académique — projet de fin d'études B3
-Développeur Web Fullstack by ME.
+**Plateforme web de gestion de la vie académique** : emploi du temps, notes, absences, annonces, réservation de ressources, notifications, statistiques et bulletins PDF, dans une seule application dont l'interface et les droits s'adaptent au rôle de chaque utilisateur (étudiant, enseignant, administrateur).
 
-Voir `01-cahier-des-charges.md` pour le contexte, le périmètre fonctionnel
-et le planning du projet.
+Projet de Personel **Développeur Web Fullstack**, conçu, développé, testé et déployé seul.
 
-## Stack technique
+**Démo en ligne** | https://smart-campus-nu-gilt.vercel.app/ |
+**API (état de santé)** | https://smart-campus-api-awjo.onrender.com/api/health |
+**Code source** | https://github.com/WILLIAM04052005/smart-campus |
 
-- **Frontend** : React 18 + TypeScript + Vite + Tailwind CSS
-- **Backend** : Node.js + Express + TypeScript
-- **Base de données** : PostgreSQL + Prisma ORM
+> ⏱️**Premier chargement** : l'API est hébergée sur une offre gratuite qui se met en veille après 15 minutes d'inactivité. La première connexion peut prendre environ une minute ; ensuite tout est rapide.
 
-## Structure du dépôt
+**Stack** : React · TypeScript · Vite · Tailwind CSS · Node.js · Express · PostgreSQL · Prisma · JWT · Jest · Render · Vercel · Neon
+
+## Aperçu
+![Tableau de bord administrateur](docs/screenshots/administrateurpage.png)
+![Espace étudiant](docs/screenshots/studentpage.png)
+---
+
+## Sommaire
+
+1. [Contexte et problématique](#1-contexte-et-problématique)
+2. [Utilisateurs cibles (personas)](#2-utilisateurs-cibles-personas)
+3. [Périmètre fonctionnel](#3-périmètre-fonctionnel)
+4. [Architecture technique](#4-architecture-technique)
+5. [Modèle de données](#5-modèle-de-données)
+6. [Sécurité](#6-sécurité)
+7. [Installation et lancement en local](#7-installation-et-lancement-en-local)
+8. [Tests automatisés](#8-tests-automatisés)
+9. [Déploiement](#9-déploiement)
+10. [Documentation du projet](#10-documentation-du-projet)
+11. [Limites connues et perspectives](#11-limites-connues-et-perspectives)
+12. [Conclusion](#12-conclusion)
+---
+
+## 1. Contexte et problématique
+
+Dans de nombreux établissements de formation de taille moyenne, la vie académique repose sur des outils dispersés : tableurs pour les emplois du temps, e-mails pour les annonces, registres papier pour les absences, feuilles de notes distribuées enseignant par enseignant. Ces outils ne communiquent pas entre eux, ce qui multiplie les erreurs et fait perdre du temps à tous.
+
+Le projet se place dans un contexte fictif mais réaliste : **NextCampus**, un centre de formation informatique d'environ 350 étudiants répartis sur 5 filières. Un établissement de cette taille est trop grand pour se passer d'outil, mais trop petit pour justifier une solution du commerce, souvent coûteuse et surdimensionnée.
+
+**Problématique** : comment centraliser la gestion de la vie académique (emploi du temps, notes, absences, communication, réservation de ressources) dans une plateforme unique, tout en adaptant l'information et les actions disponibles au rôle de chaque utilisateur ?
+
+---
+
+## 2. Utilisateurs cibles (personas)
+
+| Rôle | Besoins principaux |
+
+| **Étudiant** | Consulter son emploi du temps, ses notes et ses absences ; recevoir des notifications et des annonces ; réserver une salle ou du matériel ; télécharger son bulletin en PDF |
+| **Enseignant** | Saisir les notes et les absences des matières qu'il enseigne ; publier des annonces |
+| **Administrateur** | Créer les classes et les matières ; affecter les étudiants aux classes et les enseignants aux matières ; gérer les rôles des comptes ; gérer les ressources réservables ; consulter les statistiques de l'établissement ; télécharger n'importe quel bulletin |
+
+Le principe qui structure toute l'application est le **contrôle d'accès basé sur les rôles (RBAC)** : ce qu'un utilisateur voit et ce qu'il peut faire dépendent de son rôle, et cette règle est **vérifiée côté serveur** à chaque requête, pas seulement masquée dans l'interface.
+
+---
+
+## 3. Périmètre fonctionnel
+
+### Fonctionnalités réalisées
+
+| Fonctionnalité | Étudiant | Enseignant | Administrateur |
+
+| Inscription, connexion, déconnexion (JWT) | ✅ | ✅ | ✅ |
+| Gérer classes, matières, affectation des enseignants et des étudiants | – | – | ✅ |
+| Gérer les rôles des comptes | – | – | ✅ |
+| Saisir des absences et des notes | – | ✅ *(ses matières uniquement)* | via l'API |
+| Consulter ses notes, absences et sa moyenne | ✅ | – | – |
+| Consulter l'emploi du temps de sa classe | ✅ | – | – |
+| Consulter les annonces | ✅ *(globales + sa classe)* | ✅ | ✅ |
+| Publier des annonces | – | ✅ | ✅ |
+| Réserver une salle / du matériel (**détection automatique des conflits de créneaux**) | ✅ | ✅ | ✅ |
+| Gérer les ressources réservables | – | – | ✅ |
+| Notifications internes (cloche, compteur de non-lues) | ✅ | ✅ | ✅ |
+| Tableau de bord statistique (effectifs, absentéisme, moyennes) | – | – | ✅ |
+| Bulletin de notes en **PDF** | ✅ *(le sien)* | via l'API *(ses classes)* | ✅ *(tous)* |
+
+### Points à connaître (transparence)
+
+- **Emploi du temps** : l'API permet de lire, créer et supprimer des créneaux, et l'étudiant les consulte dans son tableau de bord. En revanche, **la saisie des créneaux par l'administrateur se fait pour l'instant via l'API** (`POST /api/schedule`) : l'écran d'administration correspondant reste à construire.
+- **Annonces ciblées** : l'API sait cibler une classe précise (`classId`). Dans l'interface, le choix de la classe cible n'est pas encore disponible : une annonce publiée depuis l'écran est aujourd'hui **globale**.
+- **Notifications** : elles sont internes à l'application (rafraîchies toutes les 30 secondes), pas envoyées par e-mail.
+
+---
+
+## 4. Architecture technique
+
+Architecture **découplée** : une application React (SPA) qui communique avec une API REST *stateless* via des requêtes JSON authentifiées par token.
+
+```
+┌──────────────────┐     HTTPS · JSON · JWT      ┌────────────────────┐
+│    Frontend      │ ──────────────────────────▶ │      Backend       │
+│  React + TS      │ ◀────────────────────────── │  Node.js + Express │
+│  Vite + Tailwind │                             │  + TypeScript      │
+└──────────────────┘                             └─────────┬──────────┘
+        Vercel                                             │ Prisma ORM
+                                                           ▼
+        Render (API)                              ┌────────────────────┐
+                                                  │    PostgreSQL      │
+                                                  │       Neon         │
+                                                  └────────────────────┘
+```
+
+| Couche | Technologie | Pourquoi ce choix |
+
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS | React est la bibliothèque la plus répandue ; TypeScript réduit les erreurs d'intégration avec l'API ; Vite offre un démarrage très rapide |
+| Backend | Node.js, Express, TypeScript | Un seul langage des deux côtés ; Express est très documenté |
+| Base de données | PostgreSQL + Prisma | Données fortement relationnelles (un étudiant → une classe, une note → un étudiant et une matière) ; Prisma génère les types à partir du schéma |
+| Authentification | JWT + bcrypt | API sans état, simple à faire évoluer ; mots de passe hachés avec sel |
+| Validation | Zod | Règles de validation centralisées et messages d'erreur clairs |
+| PDF | pdfkit | Génération côté serveur, après vérification des droits |
+| Tests | Jest + Supertest | Tests d'intégration sur de vraies requêtes HTTP |
+
+### Structure du dépôt
 
 ```
 smart-campus/
-├── backend/    → API REST (Express + Prisma)
-├── frontend/   → Application React
-└── 01-cahier-des-charges.md
+├── backend/
+│   ├── prisma/              schéma de données et migrations
+│   ├── src/
+│   │   ├── config/          connexion à la base (Prisma)
+│   │   ├── middleware/      authenticate (token) et authorize (rôles)
+│   │   ├── modules/         un dossier par ressource : auth, users, classes,
+│   │   │                    subjects, schedule, absences, grades, announcements,
+│   │   │                    resources, bookings, notifications, stats, bulletins
+│   │   └── utils/           JWT, permissions métier, notifications
+│   └── tests/               tests automatisés (Jest + Supertest)
+├── frontend/
+│   └── src/
+│       ├── api/             client HTTP centralisé (token, erreurs, téléchargements)
+│       ├── context/         état d'authentification global
+│       ├── components/      route protégée, cloche de notifications
+│       └── pages/           panneaux Admin / Enseignant / Étudiant, annonces, réservations, stats
+└── (documents du projet : cahier des charges, journal technique, guide de déploiement…)
 ```
 
-## Prérequis
+### Aperçu de l'API
 
-- [Node.js](https://nodejs.org) version 18 ou plus (vérifier avec `node -v`)
-- Une base PostgreSQL accessible. Deux options simples et gratuites :
-  - [Neon](https://neon.tech) (recommandé, sans installation)
-  - [Railway](https://railway.app)
-  - Ou PostgreSQL installé en local
+Toutes les routes, sauf l'inscription, la connexion et l'état de santé, exigent un token (`Authorization: Bearer <token>`).
 
-## Installation — Backend
+| Ressource | Routes | Accès |
+
+| `/api/auth` | `POST /register`, `POST /login`, `GET /me` | public, public, connecté |
+| `/api/users` | `GET /`, `PATCH /:id` | admin |
+| `/api/classes` | `GET /`, `GET /:id` ; `POST`, `PUT /:id`, `DELETE /:id` | connecté ; admin |
+| `/api/subjects` | `GET /` ; `POST`, `PUT /:id`, `DELETE /:id` | connecté ; admin |
+| `/api/schedule` | `GET /?classId=` ; `POST`, `DELETE /:id` | connecté ; admin |
+| `/api/absences` | `GET /` ; `POST`, `PATCH /:id` ; `DELETE /:id` | connecté (filtré par rôle) ; enseignant/admin ; admin |
+| `/api/grades` | `GET /` ; `POST`, `DELETE /:id` | connecté (filtré par rôle) ; enseignant/admin |
+| `/api/announcements` | `GET /` ; `POST`, `DELETE /:id` | connecté (filtré par rôle) ; enseignant/admin |
+| `/api/resources` | `GET /` ; `POST`, `DELETE /:id` | connecté ; admin |
+| `/api/bookings` | `GET /`, `POST /`, `DELETE /:id` | connecté *(annulation : son propre créneau, ou admin)* |
+| `/api/notifications` | `GET /`, `PATCH /:id`, `PATCH /read-all/mark` | connecté *(les siennes uniquement)* |
+| `/api/stats` | `GET /` | admin |
+| `/api/bulletins/:studentId` | `GET` → fichier PDF | étudiant (le sien), enseignant (ses classes), admin |
+| `/api/health` | `GET` | public |
+
+---
+
+## 5. Modèle de données
+
+Conçu avec la méthode **MERISE** (MCD puis MLD) et implémenté avec Prisma : 10 tables, aucune association plusieurs-à-plusieurs, donc des clés étrangères simples sans table intermédiaire.
+
+```mermaid
+erDiagram
+    Class |o--o{ User : "regroupe"
+    Class ||--o{ Subject : "propose"
+    User |o--o{ Subject : "enseigne"
+    Class ||--o{ ScheduleEntry : "planifie"
+    Subject ||--o{ ScheduleEntry : "programme"
+    User ||--o{ Absence : "subit"
+    Subject ||--o{ Absence : "concerne"
+    User ||--o{ Grade : "obtient"
+    Subject ||--o{ Grade : "concerne"
+    User ||--o{ Announcement : "publie"
+    Class |o--o{ Announcement : "cible"
+    Resource ||--o{ Booking : "est réservée"
+    User ||--o{ Booking : "réserve"
+    User ||--o{ Notification : "reçoit"
+```
+
+Les trois profils (étudiant, enseignant, administrateur) sont regroupés dans une **seule table `User`**, distinguée par un champ `role`. Ce choix simplifie les requêtes et le contrôle d'accès, au prix d'un report de certaines contraintes métier (par exemple « seul un étudiant a une classe ») dans le code applicatif.
+
+---
+
+## 6. Sécurité
+
+Quelques décisions prises délibérément :
+
+- **Mots de passe hachés avec bcrypt** (sel aléatoire par utilisateur) ; jamais stockés ni renvoyés en clair.
+- **Le rôle n'est jamais fourni par le client.** À l'inscription, tout compte est `STUDENT`, même si la requête contient `"role": "ADMIN"` (c'est couvert par un test). Seul un administrateur peut promouvoir un compte.
+- **Contrôle d'accès vérifié côté serveur**, via deux middlewares réutilisables : `authenticate` (token valide) et `authorize(...rôles)`.
+- **Contrôle de propriété au-delà du rôle** : un enseignant ne peut saisir une note ou une absence que pour une matière qu'il enseigne réellement ; un étudiant ne peut télécharger que son propre bulletin ; chacun ne lit que ses propres notifications.
+- **Message d'erreur identique** pour un e-mail inconnu et un mot de passe incorrect, afin de ne pas révéler quels comptes existent.
+- **Validation des entrées** avec Zod sur les routes d'écriture.
+- **Secrets hors du code** : adresse de la base et clé JWT sont fournies par variables d'environnement (`.env` exclu de Git) ; **CORS** restreint à l'adresse du frontend en production.
+
+---
+
+## 7. Installation et lancement en local
+
+### Prérequis
+
+- [Node.js](https://nodejs.org) 18 ou plus (vérifier avec `node -v`)
+- [Git](https://git-scm.com)
+- Une base **PostgreSQL** : soit locale, soit hébergée gratuitement sur [Neon](https://neon.tech) (sans installation)
+
+### 1. Récupérer le projet
+
+```bash
+git clone https://github.com/WILLIAM04052005/smart-campus.git
+cd smart-campus
+```
+
+### 2. Lancer le backend
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
-# Ouvrez .env et collez votre DATABASE_URL (Neon/Railway/local)
-
-npx prisma migrate dev --name init   # crée les tables en base
-npm run dev                          # démarre le serveur sur http://localhost:4000
 ```
 
-Vérifiez que ça fonctionne en ouvrant : http://localhost:4000/api/health
-Vous devez voir `{"status":"ok","database":"connected"}`.
+Créez le fichier de configuration à partir du modèle :
 
-## Installation — Frontend
+```bash
+# macOS / Linux
+cp .env.example .env
+# Windows (invite de commandes)
+copy .env.example .env
+```
 
-Dans un **second terminal** :
+Ouvrez `backend/.env` et renseignez les variables :
+
+| Variable | Rôle | Exemple |
+
+| `DATABASE_URL` | Adresse de la base PostgreSQL | `postgresql://user:motdepasse@localhost:5432/smart_campus` |
+| `JWT_SECRET` | Clé qui signe les tokens (longue et aléatoire) | *voir la commande ci-dessous* |
+| `PORT` | Port de l'API | `4000` |
+| `CORS_ORIGIN` | Origine autorisée (laisser vide en local) | *(vide)* |
+
+Pour générer une clé `JWT_SECRET` :
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+Appliquez les migrations (création des tables) puis démarrez l'API :
+
+```bash
+npx prisma migrate deploy
+npm run dev
+```
+
+L'API tourne sur http://localhost:4000. Vérification : http://localhost:4000/api/health doit afficher `{"status":"ok","database":"connected"}`.
+
+> Avec Neon, utilisez la chaîne de connexion fournie. Si `migrate deploy` échoue avec l'erreur `P1002` (verrou de migration) sur une adresse contenant `-pooler`, définissez `PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK=1` ou utilisez l'adresse de connexion directe.
+
+### 3. Lancer le frontend
+
+Dans un **second terminal** (le backend doit rester lancé) :
 
 ```bash
 cd frontend
 npm install
-npm run dev    # démarre l'app sur http://localhost:5173
+npm run dev
 ```
 
-Ouvrez http://localhost:5173 : si tout fonctionne, vous verrez
-"✓ Frontend ↔ Backend ↔ Base de données OK".
+L'application est disponible sur http://localhost:5173. Par défaut, elle appelle l'API sur `http://localhost:4000/api` ; pour pointer vers une autre API, définissez `VITE_API_URL` dans `frontend/.env`.
 
-## État d'avancement
+### 4. Créer un compte administrateur
 
-- [x] **Sprint 0** — Structure du projet, connexion DB, health check
-- [x] **Sprint 2** — Classes, matières, emploi du temps, absences, notes :
-  - Backend : CRUD complet pour `/api/classes`, `/api/subjects`,
-    `/api/schedule`, `/api/absences`, `/api/grades`, et
-    `/api/users` (gestion des rôles/classes par un admin)
-  - Permissions fines : un enseignant ne peut saisir une absence/note que
-    pour une matière qu'il enseigne réellement (vérifié côté serveur)
-  - Frontend : trois interfaces différentes selon le rôle connecté —
-    `AdminPanel` (gestion classes/matières/utilisateurs), `TeacherPanel`
-    (saisie absences/notes), `StudentPanel` (consultation emploi du
-    temps/notes/absences)
+L'inscription crée toujours un compte **étudiant** (voir la partie Sécurité) : il n'existe volontairement aucun écran pour s'auto-promouvoir. Pour obtenir un premier administrateur :
 
-**Le schéma de base de données a changé** (nouveaux modèles Subject,
-ScheduleEntry, Absence, Grade). Après avoir récupéré ces fichiers, il faut
-relancer la migration :
-```
-cd backend
-npx prisma migrate dev --name sprint2_academic_models
-```
+1. Inscrivez-vous depuis l'application (http://localhost:5173/register).
+2. Dans un terminal, ouvrez l'interface de gestion de la base :
+   ```bash
+   cd backend
+   npx prisma studio
+   ```
+3. Dans la table **User**, changez le champ `role` de votre compte en `ADMIN`, puis enregistrez.
+4. Déconnectez-vous et reconnectez-vous dans l'application.
 
-- [x] **Sprint 3 (fonctionnalités)** — Annonces et réservation de ressources :
-  - Backend : `/api/announcements` (annonces globales ou ciblées sur une
-    classe), `/api/resources` (CRUD admin), `/api/bookings` (réservation
-    de créneaux avec détection automatique des conflits d'horaires)
-  - Frontend : nouvel onglet "Annonces" (lecture pour tous, publication
-    pour enseignant/admin) et "Réservations" (visible par tous, création
-    de ressources réservée à l'admin)
+Depuis le panneau d'administration, vous pouvez ensuite créer une classe et une matière, promouvoir un compte en enseignant, l'affecter à la matière, et rattacher un étudiant à la classe.
 
-**Le schéma a encore changé** (modèles Announcement, Resource,
-Booking). Relancez la migration après avoir copié les fichiers :
-```
-cd backend
-npx prisma migrate dev --name sprint3_announcements_bookings
-```
+### Parcours de démonstration conseillé
 
-- [x] **Sprint 4 (tests)** — Suite de tests automatisés (Jest + Supertest) :
-  - `tests/auth.test.ts` — inscription, connexion, sécurité (rôle forcé à
-    STUDENT, messages d'erreur non-révélateurs)
-  - `tests/permissions.test.ts` — contrôle d'accès par rôle (401 sans
-    token, 403 mauvais rôle, 200 bon rôle)
-  - `tests/bookings.test.ts` — détection des conflits de créneaux de
-    réservation (chevauchement exact, partiel, créneaux adjacents)
+1. **Admin** : créer une classe, une matière ; promouvoir un second compte en `TEACHER` et l'affecter à la matière ; rattacher un troisième compte (étudiant) à la classe.
+2. **Enseignant** : saisir une note et une absence pour l'étudiant.
+3. **Étudiant** : voir la notification (cloche), la note, l'absence, puis télécharger son bulletin PDF.
+4. **Réservations** : créer une ressource (admin), réserver un créneau, puis tenter un créneau qui chevauche le premier pour voir le conflit détecté.
+5. **Admin** : ouvrir l'onglet *Statistiques*.
 
-### Lancer les tests
+### Comptes de démonstration (version en ligne)
+ Rôle | E-mail | Mot de passe |
 
-```
-cd backend
-npm install
-npm test
-```
- Ces tests s'exécutent contre votre base de données réelle (celle de
-votre `.env`) et nettoient automatiquement les données qu'ils créent
-(`afterAll`). C'est une simplification pédagogique assumée : dans un
-projet professionnel, on utiliserait une base de données dédiée aux
-tests, complètement isolée de la base de développement — c'est une piste
-d'amélioration à mentionner dans le rapport si vous voulez montrer que
-vous connaissez la bonne pratique.
+| Administrateur | *william.abo@2029.icam.fr* | *Doups2370* |
+| Enseignant | *prof@test.com* | *Prof2379* |
+| Étudiant | *etudiant@test.com* | *Etude2377* |
 
-- [x] **Sprint 4 (notifications)** — Notifications in-app :
-  - Backend : `/api/notifications` (liste, marquer comme lu), déclenchées
-    automatiquement à la création d'une absence, d'une note, ou d'une
-    annonce (globale ou ciblée sur une classe)
-  - Frontend : cloche de notifications dans le header, avec compteur de
-    non-lues et rafraîchissement automatique toutes les 30 secondes
-  - Correction : la méthode HTTP `PATCH` avait été oubliée dans le
-    typage du client API (`apiRequest`) — invisible en développement,
-    mais aurait bloqué un `npm run build`
+---
 
-**Nouveau modèle de données** (`Notification`). Après avoir copié les
-fichiers :
-```
-cd backend
-npx prisma migrate dev --name sprint4_notifications
-```
+## 8. Tests automatisés
 
-- [x] **Sprint 4 (statistiques)** — Tableau de bord statistiques (admin) :
-  - Backend : `GET /api/stats` (réservée aux ADMIN) — chiffres clés de
-    l'établissement, absences et moyenne par classe, moyenne par matière
-    (notes ramenées sur 20 pour comparer des barèmes différents)
-  - Frontend : onglet "Statistiques" dans le panneau d'administration,
-    avec cartes de chiffres clés et graphiques en barres en CSS pur
-    (aucune bibliothèque de graphiques ajoutée)
-  - Aucune migration ni nouvelle dépendance nécessaire
-  - Tests : `tests/stats.test.ts` (401 sans token, 403 pour un étudiant,
-    200 + structure correcte pour un admin)
+Cinq suites de tests d'intégration (**Jest + Supertest**) envoient de vraies requêtes HTTP à l'API et vérifient les réponses :
 
-- [x] **Sprint 4 (bulletins PDF)** — Export du bulletin de notes en PDF :
-  - Backend : `GET /api/bulletins/:studentId` — PDF généré côté serveur
-    avec `pdfkit` (notes par matière, moyennes sur 20, moyenne générale,
-    absences). Droits : un étudiant télécharge uniquement son bulletin,
-    un enseignant ceux des classes où il enseigne, un admin tous
-  - Frontend : bouton « Télécharger mon bulletin (PDF) » côté étudiant,
-    bouton « Bulletin PDF » dans la liste des utilisateurs côté admin
-  - La moyenne du tableau de bord étudiant utilise désormais la même
-    définition que le bulletin (moyenne des moyennes par matière)
-  - Tests : `tests/bulletins.test.ts` (401, 403, PDF valide, 404)
-
-**Nouvelle dépendance** (`pdfkit`) : relancez `npm install` dans
-`backend` après avoir copié les fichiers. Aucune migration nécessaire.
-
-### Tester les bulletins PDF
-
-1. Connectez-vous avec un compte étudiant rattaché à une classe ayant des
-   matières et des notes, puis cliquez sur « Télécharger mon bulletin »
-2. Connectez-vous en admin, onglet Utilisateurs : cliquez sur « Bulletin
-   PDF » à côté d'un étudiant
-3. Vérifiez que la moyenne générale du PDF est identique à celle affichée
-   sur le tableau de bord de l'étudiant
-
-### Tester les notifications
-
-1. Connectez-vous avec un compte enseignant, saisissez une absence ou une
-   note pour un étudiant
-2. Connectez-vous avec le compte étudiant concerné : la cloche en haut à
-   droite doit afficher un badge rouge avec le nombre de notifications
-   non lues
-3. Cliquez sur la cloche : la notification apparaît avec un point vert
-   (non lue) ; cliquez dessus pour la marquer comme lue
-4. Publiez une annonce globale (en admin) : tous les comptes étudiants
-   doivent recevoir une notification
-5. Publiez une annonce ciblée sur une classe : seuls les étudiants de
-   cette classe doivent être notifiés
-
-**Après avoir récupéré ces changements**, pensez à relancer
-`npm install` dans `backend` ET dans `frontend` (nouvelles dépendances :
-bcrypt, jsonwebtoken, zod, react-router-dom), puis à relancer
-`npx prisma generate` dans `backend` si besoin.
-
-### Tester l'authentification
-
-1. Démarrez le backend (`npm run dev` dans `backend`) et le frontend
-   (`npm run dev` dans `frontend`)
-2. Ouvrez http://localhost:5173 → vous êtes redirigé vers `/login`
-3. Cliquez sur "Inscrivez-vous", créez un compte
-4. Vous êtes automatiquement connecté et redirigé vers le tableau de bord
-5. Rafraîchissez la page : vous restez connecté (le token est vérifié via
-   `/api/auth/me`)
-6. Cliquez sur "Se déconnecter" pour tester la déconnexion
-
-## Prochaines étapes (Sprint 4)
-
-- [ ] Notifications (email ou in-app)
-- [ ] Tests automatisés (Jest + Supertest) sur les routes critiques
-- [ ] Finaliser le déploiement (voir `03-guide-deploiement.md`)
-- [ ] Export PDF des bulletins (bonus)
-- [ ] Tableau de bord statistiques (bonus)
-
-## Git — premiers pas
+| Fichier | Ce qui est vérifié |
+|---|---|
+| `auth.test.ts` | Inscription, connexion, rôle forcé à `STUDENT`, messages d'erreur non révélateurs |
+| `permissions.test.ts` | Contrôle d'accès : 401 sans token, 403 mauvais rôle, 200 bon rôle |
+| `bookings.test.ts` | Détection des conflits de réservation (chevauchement exact, partiel, créneaux adjacents) |
+| `stats.test.ts` | Statistiques réservées à l'administrateur, structure de la réponse |
+| `bulletins.test.ts` | Droits d'accès au bulletin, PDF valide, identifiant inexistant |
 
 ```bash
-git init
-git add .
-git commit -m "Sprint 0 : initialisation du projet (structure, config, health check)"
+cd backend
+npm test
 ```
 
+> Les tests s'exécutent contre la base définie dans `DATABASE_URL` et suppriment les données qu'ils créent. N'utilisez pas une base contenant des données précieuses. Une base de test dédiée est une amélioration identifiée (voir la partie 11).
+
+---
+
+## 9. Déploiement
+
+| Brique | Service | Particularité |
+
+| Frontend | **Vercel** | Un `vercel.json` redirige toutes les adresses vers `index.html` (sinon recharger `/login` donne une 404, ces pages n'existant que dans React Router) |
+| API | **Render** | Commande de build `npm install --include=dev && npm run build` ; le démarrage applique les migrations (`prisma migrate deploy`) |
+| Base de données | **Neon** (PostgreSQL) | Chaîne de connexion fournie à l'API par variable d'environnement |
+
+Le **déploiement est continu** : chaque `git push` sur la branche principale reconstruit et met en ligne la nouvelle version.
+
+Variables d'environnement de production :
+
+- **Render** : `DATABASE_URL`, `JWT_SECRET` (clé distincte de celle du développement), `CORS_ORIGIN` (adresse exacte du frontend, sans `/` final), `PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK=1`
+- **Vercel** : `VITE_API_URL` (adresse de l'API, terminée par `/api`)
+
+---
+
+## 10. Documentation du projet
+
+- [Cahier des charges et feuille de route](01-cahier-des-charges.md)
+- [Journal des choix techniques](02-journal-technique.md) : décisions, difficultés rencontrées et justifications, sprint par sprint
+
+---
+
+## 11. Limites connues et perspectives
+
+Les limites ci-dessous sont assumées et identifiées.
+
+**Fonctionnel**
+- Saisie des créneaux d'emploi du temps par l'administrateur dans l'interface (aujourd'hui via l'API) ; vue « planning » pour l'enseignant.
+- Sélecteur de classe dans le formulaire d'annonce (ciblage déjà géré par l'API).
+- Créneaux ponctuels (rattrapages, jours fériés) en plus des créneaux hebdomadaires récurrents.
+- Notifications par e-mail ; purge automatique des anciennes notifications ; historique des bulletins émis.
+
+**Qualité et fiabilité**
+- Base de données dédiée aux tests, isolée de celle du développement.
+- Intégration continue (GitHub Actions) : lancer les tests à chaque `git push` avant toute mise en ligne.
+- Pagination des listes, aujourd'hui chargées en totalité.
+
+**Expérience utilisateur**
+- Maquettes et tests utilisateurs en amont ; l'interface est pensée d'abord pour ordinateur, et son adaptation au mobile reste à vérifier et à améliorer.
+
+**Exploitation**
+- Séparer la base de production de celle du développement, conteneuriser avec Docker, ajouter une surveillance du service.
+
+---
+
+## 12. Conclusion
+
+Smart Campus montre une application fullstack menée **de la modélisation à la mise en ligne** : analyse du besoin, modèle de données MERISE, API REST sécurisée avec contrôle d'accès par rôle, interface React adaptée à trois profils, tests automatisés, génération de PDF, et déploiement continu sur trois services.
+
+Au-delà du résultat, le projet a été conduit avec une méthode que je retrouverai en entreprise : modéliser avant de coder, tester ce qui est critique, documenter chaque choix et ses compromis dans un journal technique, et traiter les incidents (fichier de secrets publié par erreur, verrou de migration, redirections en production) en cherchant la cause plutôt que le symptôme.
+
+Je recherche actuellement un **une alternance en développement web fullstack**.
+
+**Contact** : *[abowilliam30@gmail.com, 0758257823]* · **GitHub** : [WILLIAM04052005](https://github.com/WILLIAM04052005)
