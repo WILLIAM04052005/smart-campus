@@ -26,14 +26,12 @@ export default function TeacherPanel() {
   const [gradeValue, setGradeValue] = useState("");
   const [feedback, setFeedback] = useState<string | null>(null);
 
-  // Charger uniquement les matières que CET enseignant enseigne
   useEffect(() => {
     apiRequest<{ subjects: Subject[] }>("/subjects", { token }).then((res) => {
       setMySubjects(res.subjects.filter((s) => s.teacher?.id === user?.id));
     });
   }, []);
 
-  // Quand une matière est sélectionnée, charger les étudiants de sa classe
   useEffect(() => {
     const subject = mySubjects.find((s) => s.id === selectedSubjectId);
     if (!subject) {

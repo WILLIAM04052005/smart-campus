@@ -28,9 +28,6 @@ export default function NotificationBell() {
 
   useEffect(() => {
     load();
-    // On rafraîchit périodiquement pour simuler un comportement "quasi
-    // temps réel" sans avoir besoin d'une connexion WebSocket, plus
-    // complexe à mettre en place pour le bénéfice apporté ici.
     const interval = setInterval(load, 30_000);
     return () => clearInterval(interval);
   }, []);

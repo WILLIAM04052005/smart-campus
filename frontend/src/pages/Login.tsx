@@ -18,7 +18,7 @@ export default function Login() {
 
     try {
       await login(email, password);
-      navigate("/"); // redirection vers le tableau de bord une fois connecté
+      navigate("/");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erreur de connexion.");
     } finally {

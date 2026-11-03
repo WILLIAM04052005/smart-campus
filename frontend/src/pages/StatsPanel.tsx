@@ -42,10 +42,6 @@ function StatCard({ label, value, hint }: { label: string; value: string | numbe
   );
 }
 
-// Barre horizontale : la largeur est proportionnelle à value/max.
-// Réalisée en CSS pur plutôt qu'avec une bibliothèque de graphiques :
-// pour deux types de barres simples, ça évite une dépendance
-// supplémentaire à installer et à maintenir.
 function Bar({ value, max, color }: { value: number; max: number; color: string }) {
   const percent = max > 0 ? Math.min(100, (value / max) * 100) : 0;
   return (

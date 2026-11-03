@@ -31,11 +31,7 @@ export default function Announcements() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    // Pour un enseignant, "class" cible automatiquement sa propre classe
-    // côté serveur (vérifié via teacherTeachesClass). Ici on simplifie en
-    // n'envoyant classId que si l'utilisateur choisit "class" ET qu'il a
-    // une classe associée (cas étudiant non pertinent ici, donc pour un
-    // enseignant sans classe explicite, on pourrait affiner plus tard).
+
     await apiRequest("/announcements", {
       method: "POST",
       token,

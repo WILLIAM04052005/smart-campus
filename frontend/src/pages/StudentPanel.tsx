@@ -71,10 +71,6 @@ export default function StudentPanel() {
     );
   }
 
-  // Même définition que le bulletin PDF : on calcule d'abord la moyenne de
-  // chaque matière (notes ramenées sur 20), puis la moyenne de ces
-  // moyennes — chaque matière compte pour un, quel que soit son nombre
-  // de notes. Le tableau de bord et le bulletin affichent ainsi le même chiffre.
   const gradesBySubject = new Map<string, number[]>();
   grades.forEach((g) => {
     const list = gradesBySubject.get(g.subject.name) ?? [];

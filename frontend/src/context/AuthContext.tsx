@@ -35,9 +35,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => localStorage.getItem(TOKEN_STORAGE_KEY));
   const [isLoading, setIsLoading] = useState(true);
 
-  // Au chargement de l'app : si un token est déjà stocké (utilisateur
-  // déjà connecté lors d'une session précédente), on vérifie sa validité
-  // auprès du backend et on récupère le profil associé.
   useEffect(() => {
     if (!token) {
       setIsLoading(false);
@@ -89,8 +86,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
-// Hook pratique pour consommer le contexte depuis n'importe quel composant :
-// const { user, login, logout } = useAuth();
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth doit être utilisé à l'intérieur d'un <AuthProvider>");

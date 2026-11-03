@@ -9,9 +9,6 @@ import NotificationBell from "./components/NotificationBell";
 
 type Tab = "dashboard" | "announcements" | "booking";
 
-// Le tableau de bord affiche un contenu différent selon le rôle de
-// l'utilisateur connecté ("dashboard"), plus deux sections communes à
-// tous les rôles : annonces et réservation de ressources.
 function App() {
   const { user, logout } = useAuth();
   const [tab, setTab] = useState<Tab>("dashboard");

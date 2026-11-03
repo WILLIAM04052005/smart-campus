@@ -2,8 +2,6 @@ import { Navigate } from "react-router-dom";
 import { ReactNode } from "react";
 import { useAuth } from "../context/AuthContext";
 
-// Enveloppe une page pour exiger une connexion. Utilisation :
-// <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
 export default function ProtectedRoute({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
 
