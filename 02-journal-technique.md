@@ -1,13 +1,7 @@
 # Journal des choix techniques — Smart Campus
 
-Ce document trace, sprint par sprint, les décisions prises, leurs
-justifications, et les difficultés rencontrées. C'est la matière brute du
-rapport de soutenance : plus il est rempli au fil de l'eau, moins il y aura
-de travail de reconstitution en fin d'année.
-
-> Conseil : après chaque session de travail, ajoutez 2-3 lignes ici tant
-> que c'est frais. Même une note brute vaut mieux que rien.
-
+Ce document trace, sprint par sprint, mes décisions prises,
+justifications, et les difficultés rencontrées.
 ---
 
 ## Sprint 0 — Initialisation du projet
@@ -31,22 +25,16 @@ fonctionnalité métier.
   adapté qu'une base NoSQL. Prisma a été choisi pour son typage
   automatique en TypeScript (le schéma de données génère directement des
   types utilisables dans le code, ce qui évite des bugs de cohérence).
-- **Neon** comme hébergeur PostgreSQL : offre gratuite, sans carte
-  bancaire, base accessible depuis n'importe où (pratique pour développer
-  sur un seul poste et déployer plus tard sans migration de données).
+- **Neon** comme hébergeur PostgreSQL : offre gratuite, base accessible depuis n'importe où (pratique pour développer sur un seul poste et déployer plus tard sans migration de données).
 
 ### Difficultés rencontrées
 
-- *(à compléter : par exemple, la configuration initiale de l'environnement
-  Windows — `cp` non reconnu, nécessité d'utiliser `copy`)*
+- *la configuration initiale de l'environnement
+  Windows — `cp` non reconnu, nécessité d'utiliser `copy`*
 
-### Décisions à justifier en soutenance
+### Justifications
 
-- Pourquoi une architecture "API séparée" (backend REST + frontend SPA)
-  plutôt qu'un framework fullstack type Next.js : ce choix permet de bien
-  distinguer et présenter séparément les compétences front-end et
-  back-end au jury, et prépare un éventuel découplage futur (ex : ajouter
-  une app mobile qui consommerait la même API).
+- 
 
 ---
 
@@ -416,7 +404,7 @@ chaque classe ou chaque matière une par une.
 
 ### Difficultés rencontrées
 
-- *(à compléter avec vos propres remarques)*
+- 
 
 ### Décisions à justifier en soutenance
 
