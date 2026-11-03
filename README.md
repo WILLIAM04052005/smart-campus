@@ -1,14 +1,14 @@
-# Smart Campus
+# Smart Campus by ABO WILLIAM JUNIOR
 
 **Plateforme web de gestion de la vie académique** : emploi du temps, notes, absences, annonces, réservation de ressources, notifications, statistiques et bulletins PDF, dans une seule application dont l'interface et les droits s'adaptent au rôle de chaque utilisateur (étudiant, enseignant, administrateur).
 
-Projet de Personel **Développeur Web Fullstack**, conçu, développé, testé et déployé seul.
+Projet de Personel **Développeur Web Fullstack**, conçu, développé, testé et déployé.
 
 **Démo en ligne** | https://smart-campus-nu-gilt.vercel.app/ |
 **API (état de santé)** | https://smart-campus-api-awjo.onrender.com/api/health |
 **Code source** | https://github.com/WILLIAM04052005/smart-campus |
 
-> ⏱️**Premier chargement** : l'API est hébergée sur une offre gratuite qui se met en veille après 15 minutes d'inactivité. La première connexion peut prendre environ une minute ; ensuite tout est rapide.
+>**Premier chargement** : l'API est hébergée sur une offre gratuite qui se met en veille après 15 minutes d'inactivité.
 
 **Stack** : React · TypeScript · Vite · Tailwind CSS · Node.js · Express · PostgreSQL · Prisma · JWT · Jest · Render · Vercel · Neon
 
@@ -61,26 +61,23 @@ Le principe qui structure toute l'application est le **contrôle d'accès basé 
 
 | Fonctionnalité | Étudiant | Enseignant | Administrateur |
 
-| Inscription, connexion, déconnexion (JWT) | ✅ | ✅ | ✅ |
-| Gérer classes, matières, affectation des enseignants et des étudiants | – | – | ✅ |
-| Gérer les rôles des comptes | – | – | ✅ |
-| Saisir des absences et des notes | – | ✅ *(ses matières uniquement)* | via l'API |
-| Consulter ses notes, absences et sa moyenne | ✅ | – | – |
-| Consulter l'emploi du temps de sa classe | ✅ | – | – |
-| Consulter les annonces | ✅ *(globales + sa classe)* | ✅ | ✅ |
-| Publier des annonces | – | ✅ | ✅ |
-| Réserver une salle / du matériel (**détection automatique des conflits de créneaux**) | ✅ | ✅ | ✅ |
-| Gérer les ressources réservables | – | – | ✅ |
-| Notifications internes (cloche, compteur de non-lues) | ✅ | ✅ | ✅ |
-| Tableau de bord statistique (effectifs, absentéisme, moyennes) | – | – | ✅ |
-| Bulletin de notes en **PDF** | ✅ *(le sien)* | via l'API *(ses classes)* | ✅ *(tous)* |
-
-### Points à connaître (transparence)
+| Inscription, connexion, déconnexion (JWT)
+| Gérer classes, matières, affectation des enseignants et des étudiants
+| Gérer les rôles des comptes 
+| Saisir des absences et des notes *(ses matières uniquement)* | via l'API |
+| Consulter ses notes, absences et sa moyenne 
+| Consulter l'emploi du temps de sa classe 
+| Consulter les annonces *(globales + sa classe)* 
+| Publier des annonces 
+| Réserver une salle / du matériel (**détection automatique des conflits de créneaux**)
+| Gérer les ressources réservables 
+| Notifications internes (cloche, compteur de non-lues)
+| Tableau de bord statistique (effectifs, absentéisme, moyennes)
+| Bulletin de notes en **PDF** |*(le sien)* | via l'API *(ses classes)* |*(tous)* |
 
 - **Emploi du temps** : l'API permet de lire, créer et supprimer des créneaux, et l'étudiant les consulte dans son tableau de bord. En revanche, **la saisie des créneaux par l'administrateur se fait pour l'instant via l'API** (`POST /api/schedule`) : l'écran d'administration correspondant reste à construire.
 - **Annonces ciblées** : l'API sait cibler une classe précise (`classId`). Dans l'interface, le choix de la classe cible n'est pas encore disponible : une annonce publiée depuis l'écran est aujourd'hui **globale**.
 - **Notifications** : elles sont internes à l'application (rafraîchies toutes les 30 secondes), pas envoyées par e-mail.
-
 ---
 
 ## 4. Architecture technique
@@ -105,14 +102,13 @@ Architecture **découplée** : une application React (SPA) qui communique avec u
 
 | Frontend | React 18, TypeScript, Vite, Tailwind CSS | React est la bibliothèque la plus répandue ; TypeScript réduit les erreurs d'intégration avec l'API ; Vite offre un démarrage très rapide |
 | Backend | Node.js, Express, TypeScript | Un seul langage des deux côtés ; Express est très documenté |
-| Base de données | PostgreSQL + Prisma | Données fortement relationnelles (un étudiant → une classe, une note → un étudiant et une matière) ; Prisma génère les types à partir du schéma |
+| Base de données | PostgreSQL + Prisma | Données fortement relationnelles (un étudiant - une classe, une note - un étudiant et une matière) ; Prisma génère les types à partir du schéma |
 | Authentification | JWT + bcrypt | API sans état, simple à faire évoluer ; mots de passe hachés avec sel |
 | Validation | Zod | Règles de validation centralisées et messages d'erreur clairs |
 | PDF | pdfkit | Génération côté serveur, après vérification des droits |
 | Tests | Jest + Supertest | Tests d'intégration sur de vraies requêtes HTTP |
 
 ### Structure du dépôt
-
 ```
 smart-campus/
 ├── backend/
@@ -156,28 +152,8 @@ Toutes les routes, sauf l'inscription, la connexion et l'état de santé, exigen
 | `/api/health` | `GET` | public |
 
 ---
-
 ## 5. Modèle de données
-
 Conçu avec la méthode **MERISE** (MCD puis MLD) et implémenté avec Prisma : 10 tables, aucune association plusieurs-à-plusieurs, donc des clés étrangères simples sans table intermédiaire.
-
-```mermaid
-erDiagram
-    Class |o--o{ User : "regroupe"
-    Class ||--o{ Subject : "propose"
-    User |o--o{ Subject : "enseigne"
-    Class ||--o{ ScheduleEntry : "planifie"
-    Subject ||--o{ ScheduleEntry : "programme"
-    User ||--o{ Absence : "subit"
-    Subject ||--o{ Absence : "concerne"
-    User ||--o{ Grade : "obtient"
-    Subject ||--o{ Grade : "concerne"
-    User ||--o{ Announcement : "publie"
-    Class |o--o{ Announcement : "cible"
-    Resource ||--o{ Booking : "est réservée"
-    User ||--o{ Booking : "réserve"
-    User ||--o{ Notification : "reçoit"
-```
 
 Les trois profils (étudiant, enseignant, administrateur) sont regroupés dans une **seule table `User`**, distinguée par un champ `role`. Ce choix simplifie les requêtes et le contrôle d'accès, au prix d'un report de certaines contraintes métier (par exemple « seul un étudiant a une classe ») dans le code applicatif.
 
@@ -219,7 +195,7 @@ cd backend
 npm install
 ```
 
-Créez le fichier de configuration à partir du modèle :
+Crée le fichier de configuration à partir du modèle :
 
 ```bash
 # macOS / Linux
