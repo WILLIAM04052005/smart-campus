@@ -26,14 +26,12 @@ describe("Réservations — détection de conflits de créneaux", () => {
   });
 
   afterAll(async () => {
-    // La suppression en cascade (onDelete: Cascade dans schema.prisma)
-    // nettoie automatiquement les réservations liées à cette ressource.
     await prisma.resource.deleteMany({ where: { id: resourceId } });
     await prisma.user.deleteMany({ where: { email: adminEmail } });
     await prisma.$disconnect();
   });
 
-  const testDate = "2027-01-15"; // date arbitraire dans le futur, sans conflit avec de vraies données
+  const testDate = "2027-01-15"; 
 
   it("accepte une première réservation sur un créneau libre", async () => {
     const res = await request(app)
@@ -54,7 +52,6 @@ describe("Réservations — détection de conflits de créneaux", () => {
   });
 
   it("refuse une réservation qui chevauche partiellement (409)", async () => {
-    // 10h-12h chevauche la réservation existante de 9h-11h entre 10h et 11h
     const res = await request(app)
       .post("/api/bookings")
       .set("Authorization", `Bearer ${adminToken}`)
@@ -64,7 +61,6 @@ describe("Réservations — détection de conflits de créneaux", () => {
   });
 
   it("accepte une réservation sur un créneau adjacent, sans chevauchement", async () => {
-    // 11h-12h commence exactement quand l'autre se termine : pas de chevauchement
     const res = await request(app)
       .post("/api/bookings")
       .set("Authorization", `Bearer ${adminToken}`)

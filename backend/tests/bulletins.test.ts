@@ -14,8 +14,6 @@ let idA: string;
 let idB: string;
 let adminToken: string;
 
-// Supertest ne sait pas lire seul un corps binaire : on récupère les
-// octets bruts du PDF pour pouvoir vérifier son contenu.
 const binaryParser = (res: any, callback: any) => {
   const chunks: Buffer[] = [];
   res.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -68,7 +66,7 @@ describe("Bulletin PDF (GET /api/bulletins/:studentId)", () => {
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toContain("application/pdf");
     expect(res.headers["content-disposition"]).toContain("attachment");
-    // Tout fichier PDF commence par la signature "%PDF"
+  
     expect((res.body as Buffer).subarray(0, 4).toString()).toBe("%PDF");
   });
 

@@ -2,16 +2,11 @@ import request from "supertest";
 import app from "../src/app";
 import { prisma } from "../src/config/db";
 
-// On utilise un email unique à chaque exécution (timestamp) pour éviter
-// tout conflit avec des données déjà présentes en base, et on nettoie
-// tout ce qu'on a créé à la fin (voir afterAll).
 const testEmail = `test-${Date.now()}@smart-campus.test`;
 const testPassword = "motdepasse123";
 
 describe("Authentification", () => {
   afterAll(async () => {
-    // Nettoyage : on supprime le compte de test créé pendant ces tests,
-    // pour ne pas polluer la base de données au fil des exécutions.
     await prisma.user.deleteMany({ where: { email: testEmail } });
     await prisma.$disconnect();
   });
@@ -28,16 +23,13 @@ describe("Authentification", () => {
       expect(res.status).toBe(201);
       expect(res.body.token).toBeDefined();
       expect(res.body.user.email).toBe(testEmail);
-      // Le rôle doit TOUJOURS être STUDENT par défaut, même si on essaie
-      // d'envoyer autre chose (voir test de sécurité plus bas).
       expect(res.body.user.role).toBe("STUDENT");
-      // Le mot de passe ne doit JAMAIS être renvoyé dans la réponse.
       expect(res.body.user.password).toBeUndefined();
     });
 
     it("refuse un email déjà utilisé (409)", async () => {
       const res = await request(app).post("/api/auth/register").send({
-        email: testEmail, // déjà créé par le test précédent
+        email: testEmail, 
         password: testPassword,
         firstName: "Doublon",
         lastName: "Test",
@@ -49,7 +41,7 @@ describe("Authentification", () => {
     it("refuse un mot de passe trop court (400)", async () => {
       const res = await request(app).post("/api/auth/register").send({
         email: `short-${Date.now()}@smart-campus.test`,
-        password: "123", // moins de 8 caractères
+        password: "123",
         firstName: "Test",
         lastName: "Test",
       });
@@ -66,7 +58,7 @@ describe("Authentification", () => {
           password: testPassword,
           firstName: "Attaquant",
           lastName: "Test",
-          role: "ADMIN", // tentative d'auto-promotion, doit être ignorée
+          role: "ADMIN", 
         });
 
       expect(res.status).toBe(201);
@@ -97,8 +89,6 @@ describe("Authentification", () => {
     });
 
     it("refuse un email inexistant avec le même message d'erreur (401)", async () => {
-      // Le message doit être identique à celui du mauvais mot de passe,
-      // pour ne pas révéler si un email est enregistré ou non.
       const res = await request(app).post("/api/auth/login").send({
         email: "inexistant@smart-campus.test",
         password: testPassword,

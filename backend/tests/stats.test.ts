@@ -20,8 +20,6 @@ describe("Statistiques (GET /api/stats)", () => {
     });
     studentToken = studentRes.body.token;
 
-    // Aucune route publique ne crée d'admin (choix de sécurité) : on
-    // passe donc directement par la base pour préparer le test.
     await prisma.user.create({
       data: {
         email: adminEmail,
@@ -59,7 +57,7 @@ describe("Statistiques (GET /api/stats)", () => {
     expect(typeof res.body.overview.totalAbsences).toBe("number");
     expect(Array.isArray(res.body.perClass)).toBe(true);
     expect(Array.isArray(res.body.perSubject)).toBe(true);
-    // Il y a au moins l'étudiant créé dans ce test
+   
     expect(res.body.overview.students).toBeGreaterThanOrEqual(1);
   });
 });

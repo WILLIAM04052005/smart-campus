@@ -3,10 +3,6 @@ import app from "../src/app";
 import { prisma } from "../src/config/db";
 import bcrypt from "bcrypt";
 
-// Ces tests vérifient la route d'exemple /api/admin/ping, protégée par
-// authenticate + authorize("ADMIN"). On y teste les 3 cas de figure
-// possibles : pas de token, mauvais rôle, bon rôle.
-
 const studentEmail = `student-${Date.now()}@smart-campus.test`;
 const adminEmail = `admin-${Date.now()}@smart-campus.test`;
 const password = "motdepasse123";
@@ -16,7 +12,7 @@ let adminToken: string;
 
 describe("Contrôle d'accès par rôle (RBAC)", () => {
   beforeAll(async () => {
-    // Création d'un compte STUDENT classique via l'API (comportement réel)
+
     const studentRes = await request(app).post("/api/auth/register").send({
       email: studentEmail,
       password,
@@ -25,11 +21,6 @@ describe("Contrôle d'accès par rôle (RBAC)", () => {
     });
     studentToken = studentRes.body.token;
 
-    // Création d'un compte ADMIN : on passe directement par la base de
-    // données ici, car il n'existe volontairement AUCUNE route publique
-    // permettant de créer un admin (voir Sprint 1 et 2 — c'est un choix
-    // de sécurité assumé, donc on simule ici ce qu'un admin ferait déjà
-    // exister en base).
     const hashedPassword = await bcrypt.hash(password, 10);
     await prisma.user.create({
       data: {
