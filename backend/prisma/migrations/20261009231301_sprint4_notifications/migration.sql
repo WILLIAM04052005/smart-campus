@@ -1,4 +1,3 @@
--- CreateEnum
 CREATE TYPE "NotificationType" AS ENUM ('ABSENCE', 'GRADE', 'ANNOUNCEMENT');
 
 -- CreateTable

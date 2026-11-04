@@ -1,4 +1,3 @@
--- CreateEnum
 CREATE TYPE "ResourceType" AS ENUM ('ROOM', 'EQUIPMENT');
 
 -- CreateTable
