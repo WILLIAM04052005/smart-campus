@@ -228,7 +228,7 @@ npm run dev
 
 L'API tourne sur http://localhost:4000. Vérification : http://localhost:4000/api/health doit afficher `{"status":"ok","database":"connected"}`.
 
-> Avec Neon, utilisez la chaîne de connexion fournie. Si `migrate deploy` échoue avec l'erreur `P1002` (verrou de migration) sur une adresse contenant `-pooler`, définissez `PRISMA_SCHEMA_DISABLE_ADVISORY_LOCK=1` ou utilisez l'adresse de connexion directe.
+> Avec Neon, utilisez la chaîne de connexion fournie. 
 
 ### 3. Lancer le frontend
 
@@ -290,9 +290,6 @@ Cinq suites de tests d'intégration (**Jest + Supertest**) envoient de vraies re
 cd backend
 npm test
 ```
-
-> Les tests s'exécutent contre la base définie dans `DATABASE_URL` et suppriment les données qu'ils créent. N'utilisez pas une base contenant des données précieuses. Une base de test dédiée est une amélioration identifiée (voir la partie 11).
-
 ---
 
 ## 9. Déploiement
@@ -346,8 +343,6 @@ Les limites ci-dessous sont assumées et identifiées.
 
 Smart Campus montre une application fullstack menée **de la modélisation à la mise en ligne** : analyse du besoin, modèle de données MERISE, API REST sécurisée avec contrôle d'accès par rôle, interface React adaptée à trois profils, tests automatisés, génération de PDF, et déploiement continu sur trois services.
 
-Au-delà du résultat, le projet a été conduit avec une méthode que je retrouverai en entreprise : modéliser avant de coder, tester ce qui est critique, documenter chaque choix et ses compromis dans un journal technique, et traiter les incidents (fichier de secrets publié par erreur, verrou de migration, redirections en production) en cherchant la cause plutôt que le symptôme.
-
-Je recherche actuellement un **une alternance en développement web fullstack**.
+Je recherche actuellement un ** Stage en développement web fullstack**.
 
 **Contact** : *[abowilliam30@gmail.com, 0758257823]* · **GitHub** : [WILLIAM04052005](https://github.com/WILLIAM04052005)

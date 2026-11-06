@@ -31,11 +31,6 @@ fonctionnalité métier.
 
 - *la configuration initiale de l'environnement
   Windows — `cp` non reconnu, nécessité d'utiliser `copy`*
-
-### Justifications
-
-- 
-
 ---
 
 ## Sprint 1 — Authentification
@@ -61,7 +56,7 @@ connecter, et restreindre l'accès à certaines routes selon son rôle.
   réutilisable, plutôt que de dupliquer la logique de vérification dans
   chaque route.
 
-### Point de sécurité important à mentionner dans le rapport
+### Point de sécurité important
 
 À l'inscription, le rôle de l'utilisateur **n'est jamais pris depuis les
 données envoyées par le client**. Il est toujours forcé à `STUDENT` par
@@ -83,7 +78,7 @@ obtenir un accès administrateur. C'est un exemple concret de la règle
   toujours par `git`, une confusion fréquente en début d'apprentissage
   de la ligne de commande.
 
-### Décisions à justifier en soutenance
+### Décisions
 
 - Pourquoi 7 jours d'expiration pour le token JWT (compromis entre
   sécurité — un token volé reste valide moins longtemps qu'un token
@@ -107,8 +102,8 @@ académique elle-même — avec des permissions différentes selon le rôle.
   `Absence`, `Grade`). Chaque matière appartient à une classe et,
   optionnellement, à un enseignant. Ce choix reflète directement
   l'organisation réelle d'un établissement (un cours = une matière +
-  une classe + un enseignant), ce qui rend le modèle facile à expliquer
-  et à justifier devant un jury.
+  une classe + un enseignant)
+
 - **Permissions vérifiées côté serveur, jamais côté client uniquement** :
   chaque route métier revérifie les droits (`authorize`, et pour les
   enseignants, `teacherOwnsSubject`). Le frontend adapte l'affichage par
@@ -125,7 +120,7 @@ académique elle-même — avec des permissions différentes selon le rôle.
   selon `user.role`, plutôt qu'une seule page avec plein de `if` partout.
   Plus lisible, plus facile à faire évoluer indépendamment.
 
-### Point de sécurité important à mentionner dans le rapport
+### Point de sécurité important
 
 La promotion d'un utilisateur en `TEACHER` ou `ADMIN` ne peut se faire que
 via la route `PATCH /api/users/:id`, elle-même protégée par
@@ -146,7 +141,7 @@ d'un admin existant.
   présent dans les dépendances installées via `npm install`, sans
   installation séparée ni connexion à un service externe.
 
-### Décisions à justifier en soutenance
+### Décisions
 
 - Pourquoi les créneaux de l'emploi du temps sont "récurrents"
   (jour de la semaine + heure, pas une date précise) plutôt qu'un
@@ -158,7 +153,6 @@ d'un admin existant.
   admin qui le fait) : cohérent avec le fonctionnement réel d'un
   établissement, où l'inscription administrative est un acte de gestion,
   pas un choix libre de l'étudiant.
-
 ---
 
 ## Sprint 3 — Annonces et réservation de ressources
@@ -177,8 +171,7 @@ les rôles, qui enrichissent la vie "communautaire" de la plateforme.
   d'interdire toute réservation multiple sur une ressource, on calcule
   précisément le chevauchement entre deux intervalles horaires
   (`startA < endB ET endA > startB`). C'est une pièce de logique métier
-  assez classique (calendriers, plannings) qu'il est utile de savoir
-  expliquer et justifier mathématiquement en soutenance.
+  assez classique (calendriers, plannings)
 - **Permissions différenciées par ressource** : n'importe quel utilisateur
   connecté peut réserver un créneau (cohérent avec l'usage réel — un
   étudiant peut vouloir réserver une salle de travail), mais seul un
@@ -194,9 +187,8 @@ les rôles, qui enrichissent la vie "communautaire" de la plateforme.
   en relisant le fichier avant de continuer — bon réflexe à garder :
   toujours revérifier un fichier de schéma après une modification
   importante, avant de lancer une migration.
-- *(à compléter avec vos propres remarques)*
 
-### Décisions à justifier en soutenance
+### Décisions
 
 - Pourquoi la vérification de chevauchement se fait côté serveur et pas
   seulement côté interface : deux utilisateurs pourraient techniquement
@@ -213,7 +205,7 @@ les rôles, qui enrichissent la vie "communautaire" de la plateforme.
 ## Sprint 3bis — Préparation au déploiement
 
 **Objectif** : avoir une version de l'application accessible en ligne,
-sans dépendre d'un poste local allumé, pour la démo de soutenance.
+sans dépendre d'un poste local allumé.
 
 ### Choix techniques et justifications
 
@@ -231,15 +223,13 @@ sans dépendre d'un poste local allumé, pour la démo de soutenance.
   le schéma du code déployé, sans étape manuelle à ne pas oublier.
 - **CORS restreint par variable d'environnement** (`CORS_ORIGIN`) : en
   local, CORS reste ouvert (`*`) pour simplifier le développement ; en
-  production, il est restreint à l'URL exacte du frontend déployé — une
-  bonne pratique de sécurité simple à expliquer en soutenance.
+  production, il est restreint à l'URL exacte du frontend déployé.
 
 ### Difficultés rencontrées
 
-- *(à compléter : par exemple les temps de "cold start" du plan gratuit
-  Render — le service s'endort après 15 min d'inactivité)*
+- les temps de "cold start" du plan gratuit, Render — le service s'endort après 15 min d'inactivité*
 
-### Décisions à justifier en soutenance
+### Décisions
 
 - Pourquoi ne pas avoir choisi une solution "tout-en-un" (ex: un VPS
   unique hébergeant front + back + DB) : les plateformes spécialisées
@@ -254,7 +244,6 @@ sans dépendre d'un poste local allumé, pour la démo de soutenance.
 > Note : le déploiement effectif (création des comptes Render/Vercel,
 > configuration des variables d'environnement en ligne) a été repoussé
 > à plus tard dans le projet, une fois les fonctionnalités plus abouties
-> — voir `03-guide-deploiement.md` pour la marche à suivre le moment venu.
 
 ---
 
@@ -292,7 +281,7 @@ une régression si un futur changement casse quelque chose.
      plus utile à tester avec plusieurs cas limites (chevauchement exact,
      partiel, créneaux adjacents).
 
-### Limite assumée (à mentionner honnêtement dans le rapport)
+### Limite assumée
 
 Les tests s'exécutent contre la base de données de développement
 réelle (nettoyée après coup via `afterAll`), plutôt que contre une base
@@ -303,19 +292,6 @@ suite de tests). C'est le genre de limite qu'il vaut mieux annoncer
 soi-même en soutenance plutôt que de laisser le jury la découvrir — ça
 montre que vous connaissez la bonne pratique même si vous ne l'avez pas
 mise en œuvre faute de temps.
-
-### Difficultés rencontrées
-
-- *(à compléter avec vos propres remarques)*
-
-### Décisions à justifier en soutenance
-
-- Pourquoi tester le chevauchement de créneaux avec un cas "adjacent"
-  (11h-12h après 9h-11h) : c'est un cas limite classique où une erreur
-  d'implémentation est facile (utiliser `<=`/`>=` au lieu de `<`/`>`
-  transformerait par erreur des créneaux consécutifs en "conflit"). Le
-  tester explicitement prouve que la logique est correcte, pas seulement
-  qu'elle semble fonctionner sur un cas simple.
 
 ---
 
@@ -363,13 +339,12 @@ activement chaque section de la plateforme.
   production, même en cours de développement, pour détecter ce genre
   d'erreur silencieuse au plus tôt.
 
-### Décisions à justifier en soutenance
+### Décisions
 
 - Pourquoi le nettoyage/suppression des anciennes notifications n'est
   pas automatisé (pas de purge après X jours) : accepté comme
   simplification pour la durée du projet ; à mentionner comme piste
   d'amélioration (tâche planifiée / cron job) dans le bilan.
-
 ---
 
 ## Sprint 4 (suite) — Tableau de bord statistiques
@@ -402,18 +377,13 @@ chaque classe ou chaque matière une par une.
 - **Accès strictement réservé aux ADMIN**, vérifié côté serveur et
   couvert par des tests automatisés (401 / 403 / 200).
 
-### Difficultés rencontrées
-
-- 
-
-### Décisions à justifier en soutenance
+### Décisions
 
 - Pourquoi les statistiques sont calculées à la demande, à chaque
   ouverture de l'onglet, plutôt que pré-calculées et mises en cache :
   à l'échelle visée (quelques centaines d'étudiants), le temps de calcul
   est négligeable. Au-delà, une mise en cache ou des requêtes
-  d'agrégation SQL (`GROUP BY`) deviendraient pertinentes — à citer comme
-  piste d'évolution.
+  d'agrégation SQL (`GROUP BY`) deviendraient pertinentes
 
 ---
 
@@ -468,7 +438,7 @@ absences.
   (statistiques) reste calculée sur l'ensemble des notes, car c'est un
   indicateur global d'établissement et non le résultat d'un étudiant.
 
-### Décisions à justifier en soutenance
+### Décisions
 
 - Pourquoi ne pas avoir stocké les PDF en base ou sur disque : le bulletin
   est généré à la demande à partir des données courantes, il est donc
