@@ -4,8 +4,7 @@ import { authenticate } from "../../middleware/auth";
 
 const router = Router();
 
-// GET /api/notifications — les notifications de l'utilisateur connecté
-// uniquement (jamais celles d'un autre utilisateur).
+// GET /api/notifications les notifications de l'utilisateur connecté uniquement (jamais celles d'un autre utilisateur).
 router.get("/", authenticate, async (req, res) => {
   const notifications = await prisma.notification.findMany({
     where: { userId: req.user!.userId },
@@ -17,8 +16,7 @@ router.get("/", authenticate, async (req, res) => {
 });
 
 // PATCH /api/notifications/:id — marquer une notification comme lue.
-// On vérifie que la notification appartient bien à l'utilisateur
-// connecté avant de la modifier.
+// On vérifie que la notification appartient bien à l'utilisateur connecté avant de la modifier.
 router.patch("/:id", authenticate, async (req, res) => {
   const notification = await prisma.notification.findUnique({ where: { id: req.params.id } });
 
@@ -34,8 +32,7 @@ router.patch("/:id", authenticate, async (req, res) => {
   res.json({ notification: updated });
 });
 
-// PATCH /api/notifications/read-all — marquer toutes les notifications
-// de l'utilisateur connecté comme lues en une seule requête.
+// PATCH /api/notifications/read-all - marquer toutes les notifications de l'utilisateur connecté comme lues en une seule requête.
 router.patch("/read-all/mark", authenticate, async (req, res) => {
   await prisma.notification.updateMany({
     where: { userId: req.user!.userId, read: false },
