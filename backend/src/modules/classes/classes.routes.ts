@@ -10,8 +10,7 @@ const classSchema = z.object({
   year: z.number().int().min(2000).max(2100),
 });
 
-// GET /api/classes — accessible à tout utilisateur connecté (utile pour
-// remplir des menus déroulants côté frontend, ex: choisir sa classe).
+// GET /api/classes 
 router.get("/", authenticate, async (_req, res) => {
   const classes = await prisma.class.findMany({
     orderBy: { name: "asc" },
@@ -20,7 +19,7 @@ router.get("/", authenticate, async (_req, res) => {
   res.json({ classes });
 });
 
-// GET /api/classes/:id — détail d'une classe avec ses étudiants
+// GET /api/classes/:id - détail d'une classe avec ses étudiants
 router.get("/:id", authenticate, async (req, res) => {
   const classItem = await prisma.class.findUnique({
     where: { id: req.params.id },
@@ -60,8 +59,7 @@ router.put("/:id", authenticate, authorize("ADMIN"), async (req, res) => {
 });
 
 // DELETE /api/classes/:id — suppression (admin uniquement)
-// Attention : supprime aussi en cascade les matières et l'emploi du temps
-// liés (voir onDelete: Cascade dans schema.prisma).
+// Attention : supprime aussi en cascade les matières et l'emploi du temps liés 
 router.delete("/:id", authenticate, authorize("ADMIN"), async (req, res) => {
   await prisma.class.delete({ where: { id: req.params.id } });
   res.status(204).send();
