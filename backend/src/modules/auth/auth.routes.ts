@@ -8,9 +8,8 @@ import { registerSchema, loginSchema } from "./auth.schema";
 const router = Router();
 const SALT_ROUNDS = 10; // coût du hash bcrypt : bon compromis sécurité/performance
 
-// ================================================================
 // POST /api/auth/register
-// ================================================================
+
 router.post("/register", async (req, res) => {
   const parsed = registerSchema.safeParse(req.body);
 
@@ -26,16 +25,11 @@ router.post("/register", async (req, res) => {
     return res.status(409).json({ message: "Un compte existe déjà avec cet email." });
   }
 
-  // ⚠️ IMPORTANT (sécurité) : on ne stocke JAMAIS le mot de passe en clair.
-  // bcrypt.hash génère un "salt" aléatoire et produit un hash irréversible.
+  // IMPORTANT (sécurité) : on ne stocke JAMAIS le mot de passe en clair.
   const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
   // Sécurité : le rôle n'est JAMAIS pris depuis req.body ici. Sans cette
-  // précaution, n'importe qui pourrait s'inscrire en tant que "ADMIN" en
-  // ajoutant "role": "ADMIN" dans le corps de la requête. Tout nouvel
-  // inscrit est STUDENT par défaut (valeur définie dans schema.prisma).
-  // La promotion vers TEACHER/ADMIN se fera via une route protégée,
-  // réservée aux admins (à construire dans un sprint ultérieur).
+  // précaution, n'importe qui pourrait s'inscrire en tant que "ADMIN" en ajoutant "role": "ADMIN" dans le corps de la requête. 
   const user = await prisma.user.create({
     data: { email, password: hashedPassword, firstName, lastName },
   });
@@ -48,9 +42,7 @@ router.post("/register", async (req, res) => {
   });
 });
 
-// ================================================================
 // POST /api/auth/login
-// ================================================================
 router.post("/login", async (req, res) => {
   const parsed = loginSchema.safeParse(req.body);
 
@@ -62,9 +54,6 @@ router.post("/login", async (req, res) => {
 
   const user = await prisma.user.findUnique({ where: { email } });
 
-  // Message volontairement identique que l'email n'existe pas OU que le
-  // mot de passe soit faux : ça évite de révéler à un attaquant si un
-  // email est enregistré dans la base (bonne pratique de sécurité).
   if (!user) {
     return res.status(401).json({ message: "Email ou mot de passe incorrect." });
   }
@@ -82,11 +71,10 @@ router.post("/login", async (req, res) => {
   });
 });
 
-// ================================================================
-// GET /api/auth/me — retourne le profil de l'utilisateur connecté
+// GET /api/auth/me - retourne le profil de l'utilisateur connecté
 // Route protégée : sert à vérifier qu'un token est valide et à
 // récupérer les infos utilisateur côté frontend après un refresh.
-// ================================================================
+
 router.get("/me", authenticate, async (req, res) => {
   const user = await prisma.user.findUnique({
     where: { id: req.user!.userId },
