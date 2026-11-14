@@ -1,9 +1,6 @@
 import PDFDocument from "pdfkit";
 
-// Données nécessaires au bulletin. La fonction de rendu ne connaît ni
-// Express ni Prisma : elle reçoit des données déjà prêtes et produit un
-// document. Ça la rend testable seule, et réutilisable (autre format de
-// sortie, envoi par e-mail...) sans toucher au reste de l'application.
+// Données nécessaires au bulletin.
 export interface BulletinData {
   student: { firstName: string; lastName: string; email: string };
   className: string | null;
@@ -36,19 +33,19 @@ export function createBulletinPdf(data: BulletinData): InstanceType<typeof PDFDo
   const right = doc.page.width - 50;
   const contentWidth = right - left;
 
-  // --- Bandeau d'en-tête -----------------------------------------------
+  // --- Bandeau d'en-tête 
   doc.rect(0, 0, doc.page.width, 90).fill(COLORS.navy);
   doc.fillColor("#ffffff").font("Helvetica-Bold").fontSize(22).text("NextCampus", left, 28);
   doc.font("Helvetica").fontSize(11).fillColor(COLORS.emerald).text("Bulletin de notes", left, 56);
 
-  // --- Identité de l'étudiant ------------------------------------------
+  // --- Identité de l'étudiant 
   doc.fillColor(COLORS.text).font("Helvetica-Bold").fontSize(16);
   doc.text(`${data.student.firstName} ${data.student.lastName}`, left, 115);
   doc.font("Helvetica").fontSize(10).fillColor(COLORS.muted);
   doc.text(`Classe : ${data.className ?? "Aucune classe affectée"}`, left, 138);
   doc.text(`Édité le ${data.generatedAt.toLocaleDateString("fr-FR")}`, left, 152);
 
-  // --- Tableau des matières --------------------------------------------
+  // --- Tableau des matières 
   const cols = {
     subject: { x: left, w: 170 },
     teacher: { x: left + 170, w: 120 },
@@ -113,10 +110,9 @@ export function createBulletinPdf(data: BulletinData): InstanceType<typeof PDFDo
     doc.moveTo(left, y).lineTo(right, y).strokeColor(COLORS.line).lineWidth(0.5).stroke();
   });
 
-  // --- Synthèse : moyenne générale et absences ---------------------------
+  // Synthèse : moyenne générale et absences
   y += 24;
-  // Les deux encadrés de synthèse font 64 pt de haut ; on réserve en plus
-  // la place du pied de page (70 pt) avant de décider d'un saut de page.
+
   if (y + 64 > doc.page.height - 70) {
     doc.addPage();
     y = 50;
@@ -136,10 +132,8 @@ export function createBulletinPdf(data: BulletinData): InstanceType<typeof PDFDo
   doc.font("Helvetica").fontSize(10).fillColor(COLORS.muted);
   doc.text(`dont ${data.absences.unjustified} non justifiée(s)`, box2x + 14 + 40, y + 38);
 
-  // --- Pied de page ------------------------------------------------------
-  // Le pied de page est écrit dans la marge basse. Par défaut, pdfkit
-  // ajoute alors une page vierge pour y "faire déborder" le texte : on
-  // supprime donc la marge basse de la page courante avant d'écrire.
+  // Pied de page 
+ 
   doc.page.margins.bottom = 0;
   doc.font("Helvetica").fontSize(8).fillColor(COLORS.muted);
   doc.text(
