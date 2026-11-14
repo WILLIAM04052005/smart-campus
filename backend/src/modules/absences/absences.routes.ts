@@ -16,9 +16,9 @@ const absenceSchema = z.object({
 });
 
 // GET /api/absences — la liste retournée dépend du rôle :
-// - STUDENT  : uniquement ses propres absences
-// - TEACHER  : uniquement les absences des matières qu'il enseigne
-// - ADMIN    : tout, avec filtres optionnels (?studentId=, ?subjectId=)
+// STUDENT  : uniquement ses propres absences
+// TEACHER  : uniquement les absences des matières qu'il enseigne
+// ADMIN    : tout, avec filtres optionnels (?studentId=, ?subjectId=)
 router.get("/", authenticate, async (req, res) => {
   const { role, userId } = req.user!;
   const { studentId, subjectId } = req.query;
