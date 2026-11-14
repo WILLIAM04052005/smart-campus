@@ -10,13 +10,13 @@ const router = Router();
 const announcementSchema = z.object({
   title: z.string().min(1),
   content: z.string().min(1),
-  classId: z.string().uuid().nullable().optional(), // null/absent = annonce globale
+  classId: z.string().uuid().nullable().optional(), 
 });
 
 // GET /api/announcements — la visibilité dépend du rôle :
-// - STUDENT  : annonces globales + celles de sa propre classe
-// - TEACHER  : annonces globales + celles des classes où il enseigne
-// - ADMIN    : tout
+// STUDENT  : annonces globales + celles de sa propre classe
+// TEACHER  : annonces globales + celles des classes où il enseigne
+// ADMIN    : tout
 router.get("/", authenticate, async (req, res) => {
   const { role, userId } = req.user!;
 
@@ -47,8 +47,7 @@ router.get("/", authenticate, async (req, res) => {
   res.json({ announcements });
 });
 
-// POST /api/announcements — un enseignant ne peut cibler qu'une classe où
-// il enseigne (ou publier en global) ; un admin peut tout faire.
+// POST /api/announcements 
 router.post("/", authenticate, authorize("TEACHER", "ADMIN"), async (req, res) => {
   const parsed = announcementSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -66,8 +65,7 @@ router.post("/", authenticate, authorize("TEACHER", "ADMIN"), async (req, res) =
     data: { ...parsed.data, authorId: userId },
   });
 
-  // Notification des étudiants concernés : toute la promotion si
-  // l'annonce est globale, uniquement la classe ciblée sinon.
+  // Notification des étudiants concernés : toute la promotion sil'annonce est globale, uniquement la classe ciblée sinon.
   const notificationMessage = `Nouvelle annonce : ${announcement.title}`;
   if (classId) {
     await notifyClass(classId, notificationMessage, "ANNOUNCEMENT");
