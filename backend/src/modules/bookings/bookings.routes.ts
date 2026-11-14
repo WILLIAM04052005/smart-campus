@@ -15,15 +15,13 @@ const bookingSchema = z.object({
   purpose: z.string().optional(),
 });
 
-// Deux créneaux se chevauchent si l'un commence avant que l'autre ne se
-// termine, ET se termine après que l'autre ait commencé. C'est la
-// condition mathématique classique de chevauchement d'intervalles.
+// Deux créneaux se chevauchent si l'un commence avant que l'autre ne se termine, et se termine après que l'autre ait commencé. 
+
 function overlaps(aStart: string, aEnd: string, bStart: string, bEnd: string): boolean {
   return aStart < bEnd && aEnd > bStart;
 }
 
-// GET /api/bookings?resourceId=&date= — consulter les réservations d'une
-// ressource à une date donnée (pour visualiser les créneaux déjà pris).
+// GET /api/bookings?resourceId=&date= - consulter les réservations d'une ressource à une date donnée 
 router.get("/", authenticate, async (req, res) => {
   const { resourceId, date } = req.query;
 
@@ -43,8 +41,7 @@ router.get("/", authenticate, async (req, res) => {
   res.json({ bookings });
 });
 
-// POST /api/bookings — n'importe quel utilisateur connecté peut réserver,
-// à condition que le créneau soit libre sur cette ressource.
+// POST /api/bookings - n'importe quel utilisateur connecté peut réserver, à condition que le créneau soit libre sur cette ressource.
 router.post("/", authenticate, async (req, res) => {
   const parsed = bookingSchema.safeParse(req.body);
   if (!parsed.success) {
@@ -76,8 +73,7 @@ router.post("/", authenticate, async (req, res) => {
   res.status(201).json({ booking });
 });
 
-// DELETE /api/bookings/:id — annuler sa propre réservation (ou, pour un
-// admin, n'importe laquelle).
+// DELETE /api/bookings/:id — annuler sa propre réservation (ou, pour un admin, n'importe laquelle)
 router.delete("/:id", authenticate, async (req, res) => {
   const booking = await prisma.booking.findUnique({ where: { id: req.params.id } });
   if (!booking) return res.status(404).json({ message: "Réservation introuvable." });
