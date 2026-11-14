@@ -15,8 +15,7 @@ const gradeSchema = z.object({
   comment: z.string().optional(),
 });
 
-// GET /api/grades — même logique de visibilité que les absences :
-// étudiant -> les siennes, enseignant -> ses matières, admin -> tout.
+// GET /api/grades 
 router.get("/", authenticate, async (req, res) => {
   const { role, userId } = req.user!;
   const { studentId, subjectId } = req.query;
