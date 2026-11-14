@@ -2,7 +2,7 @@
 
 **Plateforme web de gestion de la vie académique** : emploi du temps, notes, absences, annonces, réservation de ressources, notifications, statistiques et bulletins PDF, dans une seule application dont l'interface et les droits s'adaptent au rôle de chaque utilisateur (étudiant, enseignant, administrateur).
 
-Projet de Personel **Développeur Web Fullstack**, conçu, développé, testé et déployé.
+Projet de Personel assister par une expert Fullstack(Danielle) **Développeur Web Fullstack**, conçu, développé, testé et déployé.
 
 **Démo en ligne** | https://smart-campus-nu-gilt.vercel.app/ |
 **API (état de santé)** | https://smart-campus-api-awjo.onrender.com/api/health |
@@ -148,7 +148,7 @@ Toutes les routes, sauf l'inscription, la connexion et l'état de santé, exigen
 | `/api/bookings` | `GET /`, `POST /`, `DELETE /:id` | connecté *(annulation : son propre créneau, ou admin)* |
 | `/api/notifications` | `GET /`, `PATCH /:id`, `PATCH /read-all/mark` | connecté *(les siennes uniquement)* |
 | `/api/stats` | `GET /` | admin |
-| `/api/bulletins/:studentId` | `GET` → fichier PDF | étudiant (le sien), enseignant (ses classes), admin |
+| `/api/bulletins/:studentId` | `GET` → fichier PDF | étudiant (le mien), enseignant (ses classes), admin |
 | `/api/health` | `GET` | public |
 
 ---
