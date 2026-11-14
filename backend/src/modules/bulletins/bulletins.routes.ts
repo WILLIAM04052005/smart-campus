@@ -12,17 +12,10 @@ const average = (values: number[]) =>
   values.length > 0 ? values.reduce((a, b) => a + b, 0) / values.length : null;
 
 // GET /api/bulletins/:studentId — télécharge le bulletin PDF d'un étudiant.
-// Qui peut télécharger quoi :
-// - STUDENT : uniquement son propre bulletin
-// - TEACHER : le bulletin des étudiants d'une classe où il enseigne
-// - ADMIN   : n'importe quel bulletin
 router.get("/:studentId", authenticate, async (req, res) => {
   const { role, userId } = req.user!;
   const { studentId } = req.params;
 
-  // Contrôle le plus restrictif en premier, avant même d'interroger la
-  // base : un étudiant qui vise l'identifiant d'un autre est refusé sans
-  // que l'on révèle si cet identifiant existe.
   if (role === "STUDENT" && userId !== studentId) {
     return res.status(403).json({ message: "Vous ne pouvez télécharger que votre propre bulletin." });
   }
@@ -72,8 +65,7 @@ router.get("/:studentId", authenticate, async (req, res) => {
   });
 
   // Moyenne générale = moyenne des moyennes de matières (chaque matière
-  // compte pour un, quel que soit son nombre de notes), sans les matières
-  // non encore notées.
+  // compte pour un, quel que soit son nombre de notes)
   const gradedAverages = subjects.map((s) => s.average).filter((a): a is number => a !== null);
 
   const data: BulletinData = {
@@ -85,8 +77,7 @@ router.get("/:studentId", authenticate, async (req, res) => {
     absences: { total: absences.length, unjustified: absences.filter((a) => !a.justified).length },
   };
 
-  // Nom de fichier sûr : on retire accents et caractères spéciaux pour
-  // éviter tout problème dans l'en-tête HTTP Content-Disposition.
+  // Nom de fichier sûr : on retire accents et caractères spéciaux pour éviter les problèmes de compatibilité.
   const safeName = `${student.lastName}-${student.firstName}`
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
