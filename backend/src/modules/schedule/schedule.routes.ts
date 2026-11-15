@@ -16,9 +16,7 @@ const scheduleSchema = z.object({
   subjectId: z.string().uuid(),
 });
 
-// GET /api/schedule?classId=... — emploi du temps d'une classe.
-// Accessible à tout utilisateur connecté : un étudiant consulte celui de
-// sa propre classe, un admin peut consulter n'importe laquelle.
+// GET /api/schedule?classId= - emploi du temps d'une classe.
 router.get("/", authenticate, async (req, res) => {
   const { classId } = req.query;
 
