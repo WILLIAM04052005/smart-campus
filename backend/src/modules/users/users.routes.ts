@@ -9,8 +9,6 @@ const router = Router();
 const SAFE_FIELDS = { id: true, email: true, firstName: true, lastName: true, role: true, classId: true } as const;
 
 // GET /api/users — liste tous les utilisateurs (admin uniquement).
-// Sert notamment à l'admin pour choisir un enseignant à assigner à une
-// matière, ou pour affecter un étudiant à une classe.
 router.get("/", authenticate, authorize("ADMIN"), async (req, res) => {
   const { role } = req.query;
 
@@ -28,9 +26,7 @@ const updateUserSchema = z.object({
   classId: z.string().uuid().nullable().optional(),
 });
 
-// PATCH /api/users/:id — modifie le rôle et/ou la classe d'un utilisateur.
-// C'est ICI, et seulement ici, qu'un utilisateur peut devenir TEACHER ou
-// ADMIN — jamais via la route d'inscription publique (voir Sprint 1).
+// PATCH /api/users/:id - modifie le rôle et/ou la classe d'un utilisateur.
 router.patch("/:id", authenticate, authorize("ADMIN"), async (req, res) => {
   const parsed = updateUserSchema.safeParse(req.body);
   if (!parsed.success) {
