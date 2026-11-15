@@ -12,7 +12,6 @@ const resourceSchema = z.object({
 });
 
 // GET /api/resources — accessible à tous les utilisateurs connectés
-// (il faut bien pouvoir voir ce qui existe pour le réserver).
 router.get("/", authenticate, async (_req, res) => {
   const resources = await prisma.resource.findMany({ orderBy: { name: "asc" } });
   res.json({ resources });
