@@ -8,11 +8,6 @@ const router = Router();
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
 // GET /api/stats — vue d'ensemble de l'établissement (ADMIN uniquement).
-//
-// Les agrégations sont calculées en JavaScript à partir de requêtes
-// simples plutôt qu'avec du SQL brut : à l'échelle d'un établissement de
-// quelques centaines d'étudiants, la différence de performance est
-// négligeable, et le code reste lisible et typé.
 router.get("/", authenticate, authorize("ADMIN"), async (_req, res) => {
   const [studentCount, teacherCount, classes, absences, grades, subjects] = await Promise.all([
     prisma.user.count({ where: { role: "STUDENT" } }),
@@ -38,7 +33,7 @@ router.get("/", authenticate, authorize("ADMIN"), async (_req, res) => {
   // Une note est ramenée sur 20 pour pouvoir comparer des barèmes différents.
   const normalize = (g: { value: number; maxValue: number }) => (g.value / g.maxValue) * 20;
 
-  // --- Statistiques par classe ---------------------------------------
+  // Statistiques par classe
   const perClass = classes.map((c) => {
     const classAbsences = absences.filter((a) => a.student.classId === c.id);
     const classGrades = grades.filter((g) => g.student.classId === c.id);
@@ -50,8 +45,7 @@ router.get("/", authenticate, authorize("ADMIN"), async (_req, res) => {
       students: studentsInClass,
       absences: classAbsences.length,
       unjustifiedAbsences: classAbsences.filter((a) => !a.justified).length,
-      // Moyenne d'absences par étudiant : plus parlante qu'un total brut
-      // pour comparer des classes d'effectifs différents.
+      // Moyenne d'absences par étudiant 
       absencesPerStudent: studentsInClass > 0 ? round1(classAbsences.length / studentsInClass) : 0,
       averageGrade:
         classGrades.length > 0
@@ -60,7 +54,7 @@ router.get("/", authenticate, authorize("ADMIN"), async (_req, res) => {
     };
   });
 
-  // --- Statistiques par matière --------------------------------------
+  // Statistiques par matière 
   const perSubject = subjects
     .map((s) => {
       const subjectGrades = grades.filter((g) => g.subjectId === s.id);
