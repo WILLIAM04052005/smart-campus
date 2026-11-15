@@ -11,7 +11,7 @@ const subjectSchema = z.object({
   teacherId: z.string().uuid().nullable().optional(),
 });
 
-// GET /api/subjects?classId=... — liste les matières, filtrable par classe
+// GET /api/subjects?classId= - liste les matières, filtrable par classe
 router.get("/", authenticate, async (req, res) => {
   const { classId } = req.query;
 
